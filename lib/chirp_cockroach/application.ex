@@ -10,6 +10,8 @@ defmodule ChirpCockroach.Application do
     children = [
       # Start the Ecto repository
       ChirpCockroach.Repo,
+      # Run migrations
+      ChirpCockroach.Migrator,
       # Start the Telemetry supervisor
       ChirpCockroachWeb.Telemetry,
       # Start the PubSub system

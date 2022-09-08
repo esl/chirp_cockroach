@@ -21,9 +21,7 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 
 ## TODO
 
-- add font awsome ccs to assets to fix css
 - add setup readme
-- add docker-compose
 - maybe implement Changefeed messages https://www.cockroachlabs.com/docs/stable/changefeed-messages.html
 - changefeed -> create separate channel and publish statistics
-- move env variables to docker-compose or separate file
+- adjust dockerfile/runtime config to run migrations
