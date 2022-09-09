@@ -24,4 +24,3 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 - add setup readme
 - maybe implement Changefeed messages https://www.cockroachlabs.com/docs/stable/changefeed-messages.html
 - changefeed -> create separate channel and publish statistics
-- adjust dockerfile/runtime config to run migrations

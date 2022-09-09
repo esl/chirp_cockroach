@@ -75,4 +75,4 @@ COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/chirp_cockroa
 
 USER nobody
 
-CMD ["./app/bin/chirp_cockroach", "start"]
+CMD ["./bin/chirp_cockroach", "start"]
