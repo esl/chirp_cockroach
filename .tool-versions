@@ -1,2 +1,6 @@
 erlang 25.0.4
 elixir 1.14.0-otp-25
+skaffold 1.39.2
+kubectl 1.25.0
+minikube 1.26.1
+kind 0.15.0

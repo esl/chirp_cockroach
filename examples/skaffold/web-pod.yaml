@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    io.kompose.network/roachnet: "true"
+    io.kompose.service: web
+  name: web
+spec:
+  containers:
+    - image: web
+      name: web
+      ports:
+        - containerPort: 4000
+      resources: {}
+  hostname: web
+  restartPolicy: OnFailure
+status: {}

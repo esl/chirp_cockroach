@@ -1,0 +1,37 @@
+apiVersion: skaffold/v2beta29
+kind: Config
+metadata:
+  name: chirp-cockroach
+build:
+  artifacts:
+    - image: web
+      docker:
+        dockerfile: Dockerfile
+        buildArgs:
+          DATABASE_URL: "postgresql://root@roach1:26257/chirp_cockroach_dev?sslmode=disable"
+          SECRET_KEY_BASE: "X7f9dcyrqW2LBuvIxgqh6Oo27K+E7wIpugTv8IENfTM9y3TnCp99AoprFXDcQKwS"
+          PHX_SERVER: "true"
+          MIX_ENV: "prod"
+portForward:
+  - resourceType: pod
+    resourceName: web
+    port: 4000
+    localPort: 4000
+  - resourceType: deployment
+    resourceName: roach1
+    port: 8080
+    localPort: 8080
+deploy:
+  kubectl:
+    manifests:
+      - "./examples/skaffold/crdb-init-deployment.yaml"
+      - "./examples/skaffold/roach1-deployment.yaml"
+      - "./examples/skaffold/roach1-persistentvolumeclaim.yaml"
+      - "./examples/skaffold/roach1-service.yaml"
+      - "./examples/skaffold/roach2-deployment.yaml"
+      - "./examples/skaffold/roach2-persistentvolumeclaim.yaml"
+      - "./examples/skaffold/roach3-deployment.yaml"
+      - "./examples/skaffold/roach3-persistentvolumeclaim.yaml"
+      - "./examples/skaffold/roachnet-networkpolicy.yaml"
+      - "./examples/skaffold/web-pod.yaml"
+      - "./examples/skaffold/web-service.yaml"

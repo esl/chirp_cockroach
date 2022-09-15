@@ -10,7 +10,17 @@ on one machine.
 
 ### Important
 As of now (13.09.2022) CockroachDB does not have binaries/homebrew formulas for Macbooks with M1/M2
-processors please use docker to run images for CockroachDB.
+processors please use Docker to run images for CockroachDB.
+
+### Requirements
+For setting up a demo using Phoenix development server you need to have Elixir and Erlang installed.
+The easies way to install all dependencies is to use package manager. This project provieds needed package
+versions in file `.tool-versions` that is used by `asdf` package manager. To install packages run:
+```bash
+$ asdf install
+```
+Docker and docker-compose are assumed to be installed on the machine, and packages required for [DevOps examples](##DevOps Examples)
+are alos specified in `.tool-versions` file.
 
 ## What is CockroachDB?
 CockroachDB is a distributed SQL database built on a transactional and strongly-consistent key-value store.
@@ -187,9 +197,39 @@ Create changefeed:
 
 
 ## DevOps Examples
-### Podman
 ### Scaffold
-### Kind
+Skaffold is a command line tool that facilitates continuous development for Kubernetes applications. You can iterate on your application source code locally and then deploy it to local or remote Kubernetes clusters. Skaffold handles the workflow for building, pushing and deploying your application. It also provides building blocks and describes customizations for a CI/CD pipeline.
+
+For a local development environment, Skaffold can use several applications most popular being: Minikube and Kind.
+- Start Minikube cluster
+```bash
+$ minikube start --profile custom
+$ skaffold config set --global local-cluster true
+% eval $(minikube -p custom docker-env)
+```
+- Start Kind cluster
+```bash
+$ kind create cluster
+$ skaffold config set --kube-context kind-kind --global local-cluster true
+```
+- Start Skaffold
+```bash
+# in ~/chirp_cockroach directory
+# start pods and watch files for changes
+$ skaffold dev -f examples/skaffold/skaffold.yaml
+# build and deploy once
+$ skaffold run -f examples/skaffold/skaffold.yaml
+```
+After starting of the Skaffold several things will happen:
+- Image of the phoenix app will be built
+- Images needed for CockroachDB will be pulled
+- Skaffold will use *-deployment.yaml files to create pods in the local cluster.
+- when running `scaffold dev` command Skaffold will watch files for changes and if such change occurs
+  application will be rebuilt and redeployed to the local cluster
+
+It's also possible to use Skaffold for [CI/CD with GitLab](https://skaffold.dev/docs/tutorials/ci_cd/)
+### Podman
+### ArgoCD
 
 
 ## Helpful links:
@@ -199,7 +239,10 @@ Create changefeed:
 - [CockroachDB](https://www.cockroachlabs.com/)
 - [Elixir](https://elixir-lang.org/)
 - [Phoenix](https://phoenixframework.org/)
+- [Skaffold](https://skaffold.dev/)
 
 
 ## TODO
-- check out scaffold, podman or kind to use with deployment and implement
+- check out scaffold, podman to use with deployment and implement
+- k8s don's restart pod if exited
+- some advanced cockroach example (features etc)

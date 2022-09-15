@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: roach1
+  name: roach1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: roach1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.network/roachnet: "true"
+        io.kompose.service: roach1
+    spec:
+      containers:
+        - args:
+            - start
+            - --insecure
+            - --join=roach1,roach2,roach3
+          image: cockroachdb/cockroach:v22.1.6
+          imagePullPolicy: IfNotPresent
+          name: roach1
+          ports:
+            - containerPort: 8080
+            - containerPort: 26257
+          resources: {}
+          volumeMounts:
+            - mountPath: /cockroach/cockroach-data
+              name: roach1
+      hostname: roach1
+      restartPolicy: Always
+      volumes:
+        - name: roach1
+          persistentVolumeClaim:
+            claimName: roach1
+status: {}
