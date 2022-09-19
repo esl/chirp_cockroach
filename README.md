@@ -196,11 +196,12 @@ Create changefeed:
 ![CockroachDB changefeed](./images/cdb_changefeed.gif)
 
 
-## DevOps Examples
+## Advanced Examples
 ### Scaffold
 Skaffold is a command line tool that facilitates continuous development for Kubernetes applications. You can iterate on your application source code locally and then deploy it to local or remote Kubernetes clusters. Skaffold handles the workflow for building, pushing and deploying your application. It also provides building blocks and describes customizations for a CI/CD pipeline.
 
-For a local development environment, Skaffold can use several applications most popular being: Minikube and Kind.
+For a local development environment to set up a Kubernetes cluster, Skaffold can use several applications most popular being: Minikube and Kind.
+
 - Start Minikube cluster
 ```bash
 $ minikube start --profile custom
@@ -216,9 +217,9 @@ $ skaffold config set --kube-context kind-kind --global local-cluster true
 ```bash
 # in ~/chirp_cockroach directory
 # start pods and watch files for changes
-$ skaffold dev -f examples/skaffold/skaffold.yaml
+$ skaffold dev -f examples/skaffold.yaml
 # build and deploy once
-$ skaffold run -f examples/skaffold/skaffold.yaml
+$ skaffold run -f examples/skaffold.yaml
 ```
 After starting of the Skaffold several things will happen:
 - Image of the phoenix app will be built
@@ -229,8 +230,29 @@ After starting of the Skaffold several things will happen:
 
 It's also possible to use Skaffold for [CI/CD with GitLab](https://skaffold.dev/docs/tutorials/ci_cd/)
 ### Podman
-### ArgoCD
+Podman is a daemonless container engine for developing, managing, and running OCI Containers on your Linux System. Containers can either be run as root or in rootless mode.
+After [installation](https://podman.io/getting-started/installation), to start the containers described in the file run:
+```bash
+$ docker-compose up
+# in separate terminal or same terminal if `docker-compose up -d` was used
+$ podman ps -a
+```
+Podman can also generate Kubernetes manifests for running containers, to do that use:
+```bash
+$ podman generate kube -s -f podman.yml [container name]
+```
+there are examples of such files in `examples/podman` directory.
+To start this demo with Podman start all with `podman play kube` in order:
+```bash
+$ podman play kube ./examples/podman/roach1-deployment.yml
+$ podman play kube ./examples/podman/roach2-deployment.yml
+$ podman play kube ./examples/podman/roach3-deployment.yml
+$ podman play kube ./examples/podman/crdb-init-deployment.yml
+$ podman play kube ./examples/podman/web-deployment.yml
+```
 
+To stop created services/pods use the same command as about with an additional `--down` flag.
+Delete persistent volumes with `podman volumen rm [volume]`
 
 ## Helpful links:
 - [What is distributed SQL?](https://www.cockroachlabs.com/blog/what-is-distributed-sql/)
