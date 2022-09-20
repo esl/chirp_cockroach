@@ -228,6 +228,10 @@ After starting of the Skaffold several things will happen:
 - when running `scaffold dev` command Skaffold will watch files for changes and if such change occurs
   application will be rebuilt and redeployed to the local cluster
 
+Kubernetes services that can be found in `./examples/skaffold` folder are configured to run in headless mode.
+This change was done by hand, by default `skaffold` generates services with default load balancing and single
+Service IP.
+
 It's also possible to use Skaffold for [CI/CD with GitLab](https://skaffold.dev/docs/tutorials/ci_cd/)
 ### Podman
 Podman is a daemonless container engine for developing, managing, and running OCI Containers on your Linux System. Containers can either be run as root or in rootless mode.

@@ -3,14 +3,15 @@ kind: Pod
 metadata:
   labels:
     io.kompose.network/roachnet: "true"
-    io.kompose.service: web
+    app: web
   name: web
 spec:
   containers:
     - image: web
       name: web
       ports:
-        - containerPort: 4000
+        - name: app-port
+          containerPort: 4000
       resources: {}
   hostname: web
   restartPolicy: OnFailure

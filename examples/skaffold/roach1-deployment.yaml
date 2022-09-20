@@ -2,20 +2,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.kompose.service: roach1
+    app: roach1
   name: roach1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: roach1
+      app: roach1
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
         io.kompose.network/roachnet: "true"
-        io.kompose.service: roach1
+        app: roach1
     spec:
       containers:
         - args:
@@ -26,8 +26,10 @@ spec:
           imagePullPolicy: IfNotPresent
           name: roach1
           ports:
-            - containerPort: 8080
-            - containerPort: 26257
+            - name: dashboard
+              containerPort: 8080
+            - name: db-port
+              containerPort: 26257
           resources: {}
           volumeMounts:
             - mountPath: /cockroach/cockroach-data

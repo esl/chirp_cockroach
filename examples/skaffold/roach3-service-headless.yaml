@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: roach1
+  name: roach3-headless
+spec:
+  selector:
+    app: roach3
+  ports:
+    - name: db-port
+      port: 26259
+      targetPort: 26259
+  clusterIP: None
