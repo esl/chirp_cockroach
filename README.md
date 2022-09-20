@@ -146,7 +146,7 @@ Basic database metrics, per node or cluster aggregated (e.g. Queries per second,
 ![CockroachDB metrics](./images/cdb_metrics.png)
 
 Automatic replication after recovery
-![CockroachDB recovery](./images/cdb_recovery.webm)
+![CockroachDB recovery](./images/cdb_recovery.mov)
 
 ## Cleanup
 To stop all containers input `CTRL+C` two times, or if you run the example in a detached state
