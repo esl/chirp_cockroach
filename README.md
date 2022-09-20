@@ -9,18 +9,17 @@ if one of the nodes is down. This is not ideal as sometimes containers might cra
 on one machine.
 
 ### Important
-As of now (13.09.2022) CockroachDB does not have binaries/homebrew formulas for Macbooks with M1/M2
+As of now (09.2022) CockroachDB does not have binaries/homebrew formulas for Macbooks with M1/M2
 processors please use Docker to run images for CockroachDB.
 
 ### Requirements
 For setting up a demo using Phoenix development server you need to have Elixir and Erlang installed.
-The easies way to install all dependencies is to use package manager. This project provieds needed package
-versions in file `.tool-versions` that is used by `asdf` package manager. To install packages run:
+The easiest way to install all dependencies is to use a package manager. This project provides needed package
+versions in file `.tool-versions` that is used by `asdf` manager. To install run:
 ```bash
 $ asdf install
 ```
-Docker and docker-compose are assumed to be installed on the machine, and packages required for [DevOps examples](##DevOps Examples)
-are alos specified in `.tool-versions` file.
+Docker and docker-compose are assumed to be installed on the machine, and packages required for [Skaffold](### Scaffold - DevOps) and [Podman](### Podman - DevOps) are also specified in `.tool-versions` file.
 
 ## What is CockroachDB?
 CockroachDB is a distributed SQL database built on a transactional and strongly-consistent key-value store.
@@ -73,13 +72,6 @@ or as database URL:
 - Docker
 - docker-compose
 
-### First/fresh run
-In case of a first start of the service or in case volumes were cleared database needs to be created
-```bash
-$ docker exec -it roach1 ./cockroach sql --insecure
-> CREATE DATABASE chirp_cockroach_dev;
-```
-
 Start containers:
 ```bash
 $ docker-compose up
@@ -89,7 +81,6 @@ This will create 4 containers:
 - roach1, roach2, roach3 - CockroachDB nodes
 - crdb-init - helper container for initializing cluster, will exit after initialization finishes
 - web - phoenix application
-
 
 ## Local setup
 
@@ -149,7 +140,7 @@ Automatic replication after recovery
 ![CockroachDB recovery](./images/cdb_recovery.mov)
 
 ## Cleanup
-To stop all containers input `CTRL+C` two times, or if you run the example in a detached state
+To stop all containers ran by `docker-compose` input `CTRL+C` two times, or if you run the example in a detached state
 ```bash
 $ docker-compose down
 ```
@@ -200,11 +191,11 @@ Create changefeed:
 ### CockroachDB - Features
 To check out more advanced features of CockroachDB refer to the links below:
 #### Replication and Rebalancing
-**Summary** Start 3-node local cluster, write some data, verify replication, add 2 more nodes and watch automatic rebalancing of the replicas
+**Summary** Start a 3-node local cluster, write some data, verify replication, add 2 more nodes and watch automatic rebalancing of the replicas
 https://www.cockroachlabs.com/docs/stable/demo-replication-and-rebalancing.html
 
 #### Fault Tolerance & Recovery
-**Summary** Starting with 6-node cluster simulate node crash and automatic recovery with uninterrupted data access
+**Summary** Starting with a 6-node cluster simulate node crash and automatic recovery with uninterrupted data access
 https://www.cockroachlabs.com/docs/stable/demo-fault-tolerance-and-recovery.html
 #### Multi-Region Performance
 **Summary** Setup example multi-region CockroachDB node cluster and run example workload
@@ -213,9 +204,9 @@ https://www.cockroachlabs.com/docs/stable/demo-low-latency-multi-region-deployme
 **Summary** Work through a hypothetical scenario demonstrating the importance of `SERIALIZABLE` isolation for data correctness.
 https://www.cockroachlabs.com/docs/stable/demo-serializable.html
 #### Other
-[Spatial Data](https://www.cockroachlabs.com/docs/stable/spatial-tutorial.html)
-[Cross-Cloud Migration](https://www.cockroachlabs.com/docs/stable/demo-automatic-cloud-migration.html)
-[JSON Support](https://www.cockroachlabs.com/docs/stable/demo-json-support.html)
+- [Spatial Data](https://www.cockroachlabs.com/docs/stable/spatial-tutorial.html)
+- [Cross-Cloud Migration](https://www.cockroachlabs.com/docs/stable/demo-automatic-cloud-migration.html)
+- [JSON Support](https://www.cockroachlabs.com/docs/stable/demo-json-support.html)
 
 
 
@@ -279,7 +270,7 @@ $ podman play kube ./examples/podman/web-deployment.yml
 ```
 
 To stop created services/pods use the same command as about with an additional `--down` flag.
-Delete persistent volumes with `podman volumen rm [volume]`
+Delete persistent volumes with `podman volume rm [volume]`
 
 ## Helpful links:
 - [What is distributed SQL?](https://www.cockroachlabs.com/blog/what-is-distributed-sql/)
