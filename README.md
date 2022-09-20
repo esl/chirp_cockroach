@@ -146,7 +146,7 @@ Basic database metrics, per node or cluster aggregated (e.g. Queries per second,
 ![CockroachDB metrics](./images/cdb_metrics.png)
 
 Automatic replication after recovery
-![CockroachDB recovery](./images/cdb_recovery.mp4)
+![CockroachDB recovery](./images/cdb_recovery.webm)
 
 ## Cleanup
 To stop all containers input `CTRL+C` two times, or if you run the example in a detached state
@@ -197,7 +197,30 @@ Create changefeed:
 
 
 ## Advanced Examples
-### Scaffold
+### CockroachDB - Features
+To check out more advanced features of CockroachDB refer to the links below:
+#### Replication and Rebalancing
+**Summary** Start 3-node local cluster, write some data, verify replication, add 2 more nodes and watch automatic rebalancing of the replicas
+https://www.cockroachlabs.com/docs/stable/demo-replication-and-rebalancing.html
+
+#### Fault Tolerance & Recovery
+**Summary** Starting with 6-node cluster simulate node crash and automatic recovery with uninterrupted data access
+https://www.cockroachlabs.com/docs/stable/demo-fault-tolerance-and-recovery.html
+#### Multi-Region Performance
+**Summary** Setup example multi-region CockroachDB node cluster and run example workload
+https://www.cockroachlabs.com/docs/stable/demo-low-latency-multi-region-deployment.html
+#### Serializable Transactions
+**Summary** Work through a hypothetical scenario demonstrating the importance of `SERIALIZABLE` isolation for data correctness.
+https://www.cockroachlabs.com/docs/stable/demo-serializable.html
+#### Other
+[Spatial Data](https://www.cockroachlabs.com/docs/stable/spatial-tutorial.html)
+[Cross-Cloud Migration](https://www.cockroachlabs.com/docs/stable/demo-automatic-cloud-migration.html)
+[JSON Support](https://www.cockroachlabs.com/docs/stable/demo-json-support.html)
+
+
+
+
+### Scaffold - DevOps
 Skaffold is a command line tool that facilitates continuous development for Kubernetes applications. You can iterate on your application source code locally and then deploy it to local or remote Kubernetes clusters. Skaffold handles the workflow for building, pushing and deploying your application. It also provides building blocks and describes customizations for a CI/CD pipeline.
 
 For a local development environment to set up a Kubernetes cluster, Skaffold can use several applications most popular being: Minikube and Kind.
@@ -233,7 +256,7 @@ This change was done by hand, by default `skaffold` generates services with defa
 Service IP.
 
 It's also possible to use Skaffold for [CI/CD with GitLab](https://skaffold.dev/docs/tutorials/ci_cd/)
-### Podman
+### Podman - DevOps
 Podman is a daemonless container engine for developing, managing, and running OCI Containers on your Linux System. Containers can either be run as root or in rootless mode.
 After [installation](https://podman.io/getting-started/installation), to start the containers described in the file run:
 ```bash
@@ -266,9 +289,3 @@ Delete persistent volumes with `podman volumen rm [volume]`
 - [Elixir](https://elixir-lang.org/)
 - [Phoenix](https://phoenixframework.org/)
 - [Skaffold](https://skaffold.dev/)
-
-
-## TODO
-- check out scaffold, podman to use with deployment and implement
-- k8s don's restart pod if exited
-- some advanced cockroach example (features etc)
