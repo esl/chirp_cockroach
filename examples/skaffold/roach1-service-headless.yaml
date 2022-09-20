@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     app: roach1
-  name: roach1-headless
+  name: roach1
 spec:
   ports:
     - name: "dashboard"

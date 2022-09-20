@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     app: roach2
-  name: roach2-headless
+  name: roach2
 spec:
   selector:
     app: roach2
