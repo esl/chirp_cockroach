@@ -8,10 +8,6 @@ and how to deploy it using tools that are commonly used in production (e.g. Kube
 if one of the nodes is down. This is not ideal as sometimes containers might crash as a result of running 3 of them
 on one machine.
 
-### Important
-As of now (13.09.2022) CockroachDB does not have binaries/homebrew formulas for Macbooks with M1/M2
-processors please use docker to run images for CockroachDB.
-
 ## What is CockroachDB?
 CockroachDB is a distributed SQL database built on a transactional and strongly-consistent key-value store.
 It scales horizontally; survives disk, machine, rack, and even data center failures with minimal latency disruption
