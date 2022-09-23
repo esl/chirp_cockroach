@@ -8,6 +8,16 @@ and how to deploy it using tools that are commonly used in production (e.g. Kube
 if one of the nodes is down. This is not ideal as sometimes containers might crash as a result of running 3 of them
 on one machine.
 
+### Requirements
+For setting up a demo using Phoenix development server you need to have Elixir and Erlang installed.
+The easiest way to install all dependencies is to use a package manager. This project provides the needed package
+versions in file the `.tool-versions` file used by `asdf` package manager. To install the packages run:
+```bash
+$ asdf install
+```
+Docker and docker-compose are assumed to be installed on the machine, and packages required for [DevOps examples](##DevOps Examples)
+are also specified in the `.tool-versions` file.
+
 ## What is CockroachDB?
 CockroachDB is a distributed SQL database built on a transactional and strongly-consistent key-value store.
 It scales horizontally; survives disk, machine, rack, and even data center failures with minimal latency disruption
@@ -59,13 +69,6 @@ or as database URL:
 - Docker
 - docker-compose
 
-### First/fresh run
-In case of a first start of the service or in case volumes were cleared database needs to be created
-```bash
-$ docker exec -it roach1 ./cockroach sql --insecure
-> CREATE DATABASE chirp_cockroach_dev;
-```
-
 Start containers:
 ```bash
 $ docker-compose up
@@ -75,7 +78,6 @@ This will create 4 containers:
 - roach1, roach2, roach3 - CockroachDB nodes
 - crdb-init - helper container for initializing cluster, will exit after initialization finishes
 - web - phoenix application
-
 
 ## Local setup
 
@@ -132,10 +134,10 @@ Basic database metrics, per node or cluster aggregated (e.g. Queries per second,
 ![CockroachDB metrics](./images/cdb_metrics.png)
 
 Automatic replication after recovery
-![CockroachDB recovery](./images/cdb_recovery.mp4)
+![CockroachDB recovery](./images/cdb_recovery.mov)
 
 ## Cleanup
-To stop all containers input `CTRL+C` two times, or if you run the example in a detached state
+To stop all containers ran by `docker-compose` input `CTRL+C` two times, or if you run the example in a detached state
 ```bash
 $ docker-compose down
 ```
@@ -182,11 +184,87 @@ Create changefeed:
 ![CockroachDB changefeed](./images/cdb_changefeed.gif)
 
 
-## DevOps Examples
-### Podman
-### Scaffold
-### Kind
+## Advanced Examples
+### CockroachDB - Features
+To check out more advanced features of CockroachDB refer to the links below:
+#### Replication and Rebalancing
+**Summary** Start a 3-node local cluster, write some data, verify replication, add 2 more nodes and watch automatic rebalancing of the replicas
+https://www.cockroachlabs.com/docs/stable/demo-replication-and-rebalancing.html
 
+#### Fault Tolerance & Recovery
+**Summary** Starting with a 6-node cluster simulate node crash and automatic recovery with uninterrupted data access
+https://www.cockroachlabs.com/docs/stable/demo-fault-tolerance-and-recovery.html
+#### Multi-Region Performance
+**Summary** Setup example multi-region CockroachDB node cluster and run example workload
+https://www.cockroachlabs.com/docs/stable/demo-low-latency-multi-region-deployment.html
+#### Serializable Transactions
+**Summary** Work through a hypothetical scenario demonstrating the importance of `SERIALIZABLE` isolation for data correctness.
+https://www.cockroachlabs.com/docs/stable/demo-serializable.html
+#### Other
+- [Spatial Data](https://www.cockroachlabs.com/docs/stable/spatial-tutorial.html)
+- [Cross-Cloud Migration](https://www.cockroachlabs.com/docs/stable/demo-automatic-cloud-migration.html)
+- [JSON Support](https://www.cockroachlabs.com/docs/stable/demo-json-support.html)
+
+## DevOps Examples
+### Scaffold
+Skaffold is a command line tool that facilitates continuous development of Kubernetes applications. You can iterate on your application source code locally and then deploy it to local or remote Kubernetes clusters. Skaffold handles the workflow of building, pushing and deploying your application. It also provides building blocks and describes customizations for a CI/CD pipeline.
+
+For a local development environment, Skaffold can use several applications the most popular being Minikube and Kind.
+- Start Minikube cluster
+```bash
+$ minikube start --profile custom
+$ skaffold config set --global local-cluster true
+% eval $(minikube -p custom docker-env)
+```
+- Start Kind cluster
+```bash
+$ kind create cluster
+$ skaffold config set --kube-context kind-kind --global local-cluster true
+```
+- Start Skaffold
+```bash
+# in ~/chirp_cockroach directory
+# start pods and watch files for changes
+$ skaffold dev -f examples/skaffold.yaml
+# build and deploy once
+$ skaffold run -f examples/skaffold.yaml
+```
+After starting of the Skaffold several things will happen:
+- Image of the phoenix app will be built
+- Images needed for CockroachDB will be pulled
+- Skaffold will use *-deployment.yaml files to create pods in the local cluster.
+- when running `scaffold dev` command Skaffold will watch files for changes and if such a change occurs
+  application will be rebuilt and redeployed to the local cluster
+
+Kubernetes services that can be found in `./examples/skaffold` folder are configured to run in headless mode.
+This change was done by hand, by default `skaffold` generates services with default load balancing and single
+Service IP.
+
+It's also possible to use Skaffold for [CI/CD with GitLab](https://skaffold.dev/docs/tutorials/ci_cd/)
+### Podman - DevOps
+Podman is a daemonless container engine for developing, managing, and running OCI Containers on your Linux System. Containers can either be run as root or in rootless mode.
+After [installation](https://podman.io/getting-started/installation), to start the containers described in the file run:
+```bash
+$ docker-compose up
+# in separate terminal or same terminal if `docker-compose up -d` was used
+$ podman ps -a
+```
+Podman can also generate Kubernetes manifests for running containers, to do that use:
+```bash
+$ podman generate kube -s -f podman.yml [container name]
+```
+there are examples of such files in `examples/podman` directory.
+To start this demo with Podman start all with `podman play kube` in order:
+```bash
+$ podman play kube ./examples/podman/roach1-deployment.yml
+$ podman play kube ./examples/podman/roach2-deployment.yml
+$ podman play kube ./examples/podman/roach3-deployment.yml
+$ podman play kube ./examples/podman/crdb-init-deployment.yml
+$ podman play kube ./examples/podman/web-deployment.yml
+```
+
+To stop created services/pods use the same command as about with an additional `--down` flag.
+Delete persistent volumes with `podman volume rm [volume]`
 
 ## Helpful links:
 - [What is distributed SQL?](https://www.cockroachlabs.com/blog/what-is-distributed-sql/)
@@ -195,7 +273,4 @@ Create changefeed:
 - [CockroachDB](https://www.cockroachlabs.com/)
 - [Elixir](https://elixir-lang.org/)
 - [Phoenix](https://phoenixframework.org/)
-
-
-## TODO
-- check out scaffold, podman or kind to use with deployment and implement
+- [Skaffold](https://skaffold.dev/)

@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3"
 services:
   web:
     container_name: web
@@ -8,7 +8,7 @@ services:
       args:
         DATABASE_URL: "postgresql://root@roach1:26257/chirp_cockroach_dev?sslmode=disable"
         SECRET_KEY_BASE: "X7f9dcyrqW2LBuvIxgqh6Oo27K+E7wIpugTv8IENfTM9y3TnCp99AoprFXDcQKwS"
-        PHX_SERVER: true
+        PHX_SERVER: "true"
         MIX_ENV: "prod"
     ports:
       - 4000:4000
