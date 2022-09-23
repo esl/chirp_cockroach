@@ -10,12 +10,13 @@ on one machine.
 
 ### Requirements
 For setting up a demo using Phoenix development server you need to have Elixir and Erlang installed.
-The easiest way to install all dependencies is to use a package manager. This project provides needed package
-versions in file `.tool-versions` that is used by `asdf` manager. To install run:
+The easiest way to install all dependencies is to use a package manager. This project provides the needed package
+versions in file the `.tool-versions` file used by `asdf` package manager. To install the packages run:
 ```bash
 $ asdf install
 ```
-Docker and docker-compose are assumed to be installed on the machine, and packages required for [Skaffold](### Scaffold - DevOps) and [Podman](### Podman - DevOps) are also specified in `.tool-versions` file.
+Docker and docker-compose are assumed to be installed on the machine, and packages required for [DevOps examples](##DevOps Examples)
+are also specified in the `.tool-versions` file.
 
 ## What is CockroachDB?
 CockroachDB is a distributed SQL database built on a transactional and strongly-consistent key-value store.
@@ -204,14 +205,11 @@ https://www.cockroachlabs.com/docs/stable/demo-serializable.html
 - [Cross-Cloud Migration](https://www.cockroachlabs.com/docs/stable/demo-automatic-cloud-migration.html)
 - [JSON Support](https://www.cockroachlabs.com/docs/stable/demo-json-support.html)
 
+## DevOps Examples
+### Scaffold
+Skaffold is a command line tool that facilitates continuous development of Kubernetes applications. You can iterate on your application source code locally and then deploy it to local or remote Kubernetes clusters. Skaffold handles the workflow of building, pushing and deploying your application. It also provides building blocks and describes customizations for a CI/CD pipeline.
 
-
-
-### Scaffold - DevOps
-Skaffold is a command line tool that facilitates continuous development for Kubernetes applications. You can iterate on your application source code locally and then deploy it to local or remote Kubernetes clusters. Skaffold handles the workflow for building, pushing and deploying your application. It also provides building blocks and describes customizations for a CI/CD pipeline.
-
-For a local development environment to set up a Kubernetes cluster, Skaffold can use several applications most popular being: Minikube and Kind.
-
+For a local development environment, Skaffold can use several applications the most popular being Minikube and Kind.
 - Start Minikube cluster
 ```bash
 $ minikube start --profile custom
@@ -235,7 +233,7 @@ After starting of the Skaffold several things will happen:
 - Image of the phoenix app will be built
 - Images needed for CockroachDB will be pulled
 - Skaffold will use *-deployment.yaml files to create pods in the local cluster.
-- when running `scaffold dev` command Skaffold will watch files for changes and if such change occurs
+- when running `scaffold dev` command Skaffold will watch files for changes and if such a change occurs
   application will be rebuilt and redeployed to the local cluster
 
 Kubernetes services that can be found in `./examples/skaffold` folder are configured to run in headless mode.
