@@ -2,20 +2,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.kompose.service: roach2
+    app: roach2
   name: roach2
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: roach2
+      app: roach2
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
         io.kompose.network/roachnet: "true"
-        io.kompose.service: roach2
+        app: roach2
     spec:
       containers:
         - args:

@@ -25,9 +25,11 @@ deploy:
   kubectl:
     manifests:
       - "./examples/skaffold/crdb-init-deployment.yaml"
+      - "./examples/skaffold/roach1-service-headless.yaml"
+      - "./examples/skaffold/roach2-service-headless.yaml"
+      - "./examples/skaffold/roach3-service-headless.yaml"
       - "./examples/skaffold/roach1-deployment.yaml"
       - "./examples/skaffold/roach1-persistentvolumeclaim.yaml"
-      - "./examples/skaffold/roach1-service.yaml"
       - "./examples/skaffold/roach2-deployment.yaml"
       - "./examples/skaffold/roach2-persistentvolumeclaim.yaml"
       - "./examples/skaffold/roach3-deployment.yaml"
