@@ -8,10 +8,6 @@ and how to deploy it using tools that are commonly used in production (e.g. Kube
 if one of the nodes is down. This is not ideal as sometimes containers might crash as a result of running 3 of them
 on one machine.
 
-### Important
-As of now (09.2022) CockroachDB does not have binaries/homebrew formulas for Macbooks with M1/M2
-processors please use Docker to run images for CockroachDB.
-
 ### Requirements
 For setting up a demo using Phoenix development server you need to have Elixir and Erlang installed.
 The easiest way to install all dependencies is to use a package manager. This project provides needed package
