@@ -7,8 +7,4 @@ metadata:
 spec:
   selector:
     app: roach3
-  ports:
-    - name: db-port
-      port: 26259
-      targetPort: 26259
   clusterIP: None

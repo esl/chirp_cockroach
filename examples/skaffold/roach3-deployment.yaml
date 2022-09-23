@@ -25,9 +25,6 @@ spec:
           image: cockroachdb/cockroach:v22.1.6
           imagePullPolicy: IfNotPresent
           name: roach3
-          ports:
-            - name: db-port
-              containerPort: 26259
           resources: {}
           volumeMounts:
             - mountPath: /cockroach/cockroach-data

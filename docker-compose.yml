@@ -46,8 +46,6 @@ services:
     image: cockroachdb/cockroach:v22.1.6
     container_name: roach2
     hostname: roach2
-    ports:
-      - 26258:26258
     volumes:
       - roach2:/cockroach/cockroach-data
     command: "start --insecure --join=roach1,roach2,roach3"
@@ -59,8 +57,6 @@ services:
     image: cockroachdb/cockroach:v22.1.6
     container_name: roach3
     hostname: roach3
-    ports:
-      - 26259:26259
     volumes:
       - roach3:/cockroach/cockroach-data
     command: "start --insecure --join=roach1,roach2,roach3"
