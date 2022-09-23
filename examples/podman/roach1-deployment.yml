@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chirp_cockroach_roach1-pvc
+  labels:
+    app: roach1-pod
+spec:
+  accessModes:
+    - ReadWriteOnce
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    io.kubernetes.cri-o.TTY/roach1: "false"
+    io.podman.annotations.autoremove/roach1: "FALSE"
+    io.podman.annotations.init/roach1: "FALSE"
+    io.podman.annotations.privileged/roach1: "FALSE"
+    io.podman.annotations.publish-all/roach1: "FALSE"
+  creationTimestamp: "2022-09-19T06:10:45Z"
+  labels:
+    app: roach1-pod
+  name: roach1-pod
+spec:
+  ports:
+    - name: "8080"
+      nodePort: 31328
+      port: 8080
+      targetPort: 8080
+    - name: "26257"
+      nodePort: 31757
+      port: 26257
+      targetPort: 26257
+  selector:
+    app: roach1-pod
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: roach1-pod
+  annotations:
+    io.kubernetes.cri-o.TTY/roach1: "false"
+    io.podman.annotations.autoremove/roach1: "FALSE"
+    io.podman.annotations.init/roach1: "FALSE"
+    io.podman.annotations.privileged/roach1: "FALSE"
+    io.podman.annotations.publish-all/roach1: "FALSE"
+spec:
+  selector:
+    matchLabels:
+      app: roach1-pod
+  template:
+    metadata:
+      labels:
+        app: roach1-pod
+    spec:
+      containers:
+        - name: roach1-pod
+          image: docker.io/cockroachdb/cockroach:v22.1.6
+          args:
+            - start
+            - --insecure
+            - --join=roach1,roach2,roach3
+          env:
+            - name: HOSTNAME
+              value: roach1
+          ports:
+            - containerPort: 8080
+              hostPort: 8080
+            - containerPort: 26257
+              hostPort: 26257
+          securityContext:
+            capabilities:
+              drop:
+                - CAP_MKNOD
+                - CAP_NET_RAW
+                - CAP_AUDIT_WRITE
+      volumeMounts:
+        - mountPath: /cockroach/cockroach-data
+          name: chirp_cockroach_roach1-pvc
+  hostname: roach1
