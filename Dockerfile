@@ -1,57 +1,56 @@
-ARG MIX_ENV="prod"
-ARG DATABASE_URL="postgresql://root@roach1:26257/chirp_cockroach_dev?sslmode=disable"
-ARG SECRET_KEY_BASE="X7f9dcyrqW2LBuvIxgqh6Oo27K+E7wIpugTv8IENfTM9y3TnCp99AoprFXDcQKwS"
-ARG PHX_SERVER=true
-FROM elixir:1.14.0-alpine as build
-# RUN apk add --no-cache build-base git python3 curl
+ARG ELIXIR_VERSION=1.14.0
+ARG OTP_VERSION=25.0.4
+ARG ALPINE_VERSION=3.16.1
 
-RUN mkdir /app
+ARG BUILDER_IMAGE=hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-alpine-${ALPINE_VERSION}
+ARG RUNNER_IMAGE=alpine:${ALPINE_VERSION}
+
+ARG DATABASE_URL
+ARG SECRET_KEY_BASE
+ARG PHX_SERVER
+ARG MIX_ENV
+
+FROM ${BUILDER_IMAGE} as builder
+
+# prepare build dir
 WORKDIR /app
+ARG MIX_ENV
+ENV MIX_ENV="${MIX_ENV}"
 
 # install hex + rebar
 RUN mix local.hex --force && \
   mix local.rebar --force
-
-ARG MIX_ENV
-ARG DATABASE_URL
-ARG SECRET_KEY_BASE
-ARG PHX_SERVER
-ENV MIX_ENV="${MIX_ENV}"
-ENV DATABASE_URL="${DATABASE_URL}"
-ENV SECRET_KEY_BASE="${SECRET_KEY_BASE}"
-ENV PHX_SERVER="${PHX_SERVER}"
-
 # install mix dependencies
 COPY mix.exs mix.lock ./
 RUN mix deps.get --only $MIX_ENV
-
-# copy compile configuration files
 RUN mkdir config
-COPY config/config.exs config/$MIX_ENV.exs config/
 
-# compile dependencies
+# copy compile-time config files before we compile dependencies
+# to ensure any relevant config change will trigger the dependencies
+# to be re-compiled.
+COPY config/config.exs config/${MIX_ENV}.exs config/
 RUN mix deps.compile
 
-# copy assets
 COPY priv priv
+
+COPY lib lib
+
 COPY assets assets
 
-# Compile assets
+# compile assets
 RUN mix assets.deploy
 
-# compile project
-COPY lib lib
+# Compile the release
 RUN mix compile
 
-# copy runtime configuration file
+# Changes to config/runtime.exs don't require recompiling the code
 COPY config/runtime.exs config/
 
-# assemble release
 RUN mix release
 
-# # app stage
-FROM alpine:3.16 AS app
-
+# start a new build stage so that the final image will only contain
+# the compiled release and other runtime necessities
+FROM ${RUNNER_IMAGE}
 ARG MIX_ENV
 ARG DATABASE_URL
 ARG SECRET_KEY_BASE
@@ -64,29 +63,16 @@ ENV PHX_SERVER="${PHX_SERVER}"
 # # install runtime dependencies
 RUN apk add --no-cache libstdc++ openssl ncurses-libs
 
-ENV USER="elixir"
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
-WORKDIR "/home/${USER}/app"
+WORKDIR "/app"
+RUN chown nobody /app
 
-# # Create  unprivileged user to run the release
-RUN \
-  addgroup \
-  -g 1000 \
-  -S "${USER}" \
-  && adduser \
-  -s /bin/sh \
-  -u 1000 \
-  -G "${USER}" \
-  -h "/home/${USER}" \
-  -D "${USER}" \
-  && su "${USER}"
+# Only copy the final release from the build stage
+COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/chirp_cockroach ./
 
-# # run as user
-USER "${USER}"
+USER nobody
 
-# # copy release executables
-COPY --from=build --chown="${USER}":"${USER}" /app/_build/"${MIX_ENV}"/rel/chirp_cockroach ./
-
-ENTRYPOINT ["bin/chirp_cockroach"]
-
-CMD ["start"]
+CMD ["./bin/chirp_cockroach", "start"]

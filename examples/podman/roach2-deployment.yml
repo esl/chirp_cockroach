@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chirp_cockroach_roach2-pvc
+  labels:
+    app: roach2-pod
+spec:
+  accessModes:
+    - ReadWriteOnce
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    io.kubernetes.cri-o.TTY/roach1: "false"
+    io.podman.annotations.autoremove/roach1: "FALSE"
+    io.podman.annotations.init/roach1: "FALSE"
+    io.podman.annotations.privileged/roach1: "FALSE"
+    io.podman.annotations.publish-all/roach1: "FALSE"
+  creationTimestamp: "2022-09-19T06:10:45Z"
+  labels:
+    app: roach2-pod
+  name: roach2-pod
+spec:
+  ports:
+    - name: "26258"
+      nodePort: 31758
+      port: 26258
+      targetPort: 26258
+  selector:
+    app: roach2-pod
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: roach2-pod
+  annotations:
+    io.kubernetes.cri-o.TTY/roach1: "false"
+    io.podman.annotations.autoremove/roach1: "FALSE"
+    io.podman.annotations.init/roach1: "FALSE"
+    io.podman.annotations.privileged/roach1: "FALSE"
+    io.podman.annotations.publish-all/roach1: "FALSE"
+spec:
+  selector:
+    matchLabels:
+      app: roach2-pod
+  template:
+    metadata:
+      labels:
+        app: roach2-pod
+    spec:
+      containers:
+        - name: roach2-pod
+          image: docker.io/cockroachdb/cockroach:v22.1.6
+          args:
+            - start
+            - --insecure
+            - --join=roach1,roach2,roach3
+          env:
+            - name: HOSTNAME
+              value: roach2
+          ports:
+            - containerPort: 26258
+              hostPort: 26258
+          securityContext:
+            capabilities:
+              drop:
+                - CAP_MKNOD
+                - CAP_NET_RAW
+                - CAP_AUDIT_WRITE
+      volumeMounts:
+        - mountPath: /cockroach/cockroach-data
+          name: chirp_cockroach_roach2-pvc
+  hostname: roach2

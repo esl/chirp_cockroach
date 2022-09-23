@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: crdb-init
+  name: crdb-init
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: crdb-init
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        io.kompose.network/roachnet: "true"
+        io.kompose.service: crdb-init
+    spec:
+      containers:
+        - env:
+            - name: COCKROACH_HOST
+              value: roach1:26257
+            - name: COCKROACH_INIT
+              value: "true"
+            - name: COCKROACH_INSECURE
+              value: "true"
+            - name: DATABASE_NAME
+              value: chirp_cockroach_dev
+          image: timveil/cockroachdb-remote-client:latest
+          imagePullPolicy: IfNotPresent
+          name: crdb-init
+          resources: {}
+      hostname: crdb-init
+      restartPolicy: Always
+status: {}

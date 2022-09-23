@@ -1,0 +1,74 @@
+version: "3"
+services:
+  web:
+    container_name: web
+    hostname: web
+    build:
+      dockerfile: Dockerfile
+      args:
+        DATABASE_URL: "postgresql://root@roach1:26257/chirp_cockroach_dev?sslmode=disable"
+        SECRET_KEY_BASE: "X7f9dcyrqW2LBuvIxgqh6Oo27K+E7wIpugTv8IENfTM9y3TnCp99AoprFXDcQKwS"
+        PHX_SERVER: "true"
+        MIX_ENV: "prod"
+    ports:
+      - 4000:4000
+    restart: on-failure
+    networks:
+      - roachnet
+  crdb-init:
+    container_name: crdb-init
+    hostname: crdb-init
+    image: timveil/cockroachdb-remote-client:latest
+    environment:
+      - COCKROACH_HOST=roach1:26257
+      - COCKROACH_INSECURE=true
+      - COCKROACH_INIT=true
+      - DATABASE_NAME=chirp_cockroach_dev
+    depends_on:
+      - roach1
+      - roach2
+      - roach3
+    networks:
+      - roachnet
+  roach1:
+    image: cockroachdb/cockroach:v22.1.6
+    container_name: roach1
+    hostname: roach1
+    ports:
+      - 8080:8080
+      - 26257:26257
+    volumes:
+      - roach1:/cockroach/cockroach-data
+    command: "start --insecure --join=roach1,roach2,roach3"
+    networks:
+      - roachnet
+  roach2:
+    image: cockroachdb/cockroach:v22.1.6
+    container_name: roach2
+    hostname: roach2
+    volumes:
+      - roach2:/cockroach/cockroach-data
+    command: "start --insecure --join=roach1,roach2,roach3"
+    depends_on:
+      - roach1
+    networks:
+      - roachnet
+  roach3:
+    image: cockroachdb/cockroach:v22.1.6
+    container_name: roach3
+    hostname: roach3
+    volumes:
+      - roach3:/cockroach/cockroach-data
+    command: "start --insecure --join=roach1,roach2,roach3"
+    depends_on:
+      - roach1
+    networks:
+      - roachnet
+networks:
+  roachnet:
+    driver: bridge
+
+volumes:
+  roach1:
+  roach2:
+  roach3:
