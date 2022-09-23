@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crdb-init-pod
+  annotations:
+    io.kubernetes.cri-o.TTY/crdb-init: "false"
+    io.podman.annotations.autoremove/crdb-init: "FALSE"
+    io.podman.annotations.init/crdb-init: "FALSE"
+    io.podman.annotations.privileged/crdb-init: "FALSE"
+    io.podman.annotations.publish-all/crdb-init: "FALSE"
+spec:
+  selector:
+    matchLabels:
+      app: crdb-init-pod
+  template:
+    metadata:
+      labels:
+        app: crdb-init-pod
+    spec:
+      containers:
+        - name: crdb-init
+          image: docker.io/timveil/cockroachdb-remote-client:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: COCKROACH_INIT
+              value: "true"
+            - name: DATABASE_NAME
+              value: chirp_cockroach_dev
+            - name: COCKROACH_HOST
+              value: roach1:26257
+            - name: COCKROACH_INSECURE
+              value: "true"
+            - name: HOSTNAME
+              value: crdb-init
+          securityContext:
+            capabilities:
+              drop:
+                - CAP_MKNOD
+                - CAP_NET_RAW
+                - CAP_AUDIT_WRITE
+  hostname: crdb-init

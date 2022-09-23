@@ -20,10 +20,6 @@ defmodule ChirpCockroachWeb.Router do
     live("/posts", PostLive.Index, :index)
     live("/posts/new", PostLive.Index, :new)
     live("/posts/:id/edit", PostLive.Index, :edit)
-
-    live("/posts/:id", PostLive.Show, :show)
-    live("/posts/:id/show/edit", PostLive.Show, :edit)
-
     get("/", PageController, :index)
   end
 

@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-pod
+  annotations:
+    io.kubernetes.cri-o.TTY/web: "false"
+    io.podman.annotations.autoremove/web: "FALSE"
+    io.podman.annotations.init/web: "FALSE"
+    io.podman.annotations.privileged/web: "FALSE"
+    io.podman.annotations.publish-all/web: "FALSE"
+spec:
+  selector:
+    matchLabels:
+      app: web-pod
+  template:
+    metadata:
+      labels:
+        app: web-pod
+    spec:
+      containers:
+        - name: web
+          env:
+            - name: HOSTNAME
+              value: web
+          image: docker.io/library/chirp_cockroach-web:latest
+          ports:
+            - containerPort: 4000
+              hostPort: 4000
+          securityContext:
+            capabilities:
+              drop:
+                - CAP_MKNOD
+                - CAP_NET_RAW
+                - CAP_AUDIT_WRITE
+      hostname: web
