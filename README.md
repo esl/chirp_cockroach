@@ -266,6 +266,81 @@ $ podman play kube ./examples/podman/web-deployment.yml
 To stop created services/pods use the same command as about with an additional `--down` flag.
 Delete persistent volumes with `podman volume rm [volume]`
 
+### Kubernetes StatefulSet - DevOps
+StatefulSet is the workload API object used to manage stateful applications.
+Manages the deployment and scaling of a set of Pods, and provides guarantees about the ordering and uniqueness of these Pods.
+Like a Deployment, a StatefulSet manages Pods that are based on an identical container spec. Unlike a Deployment, a StatefulSet maintains a sticky identity for each of its Pods. These pods are created from the same spec, but are not interchangeable: each has a persistent identifier that it maintains across any rescheduling.
+
+To deploy the application with CockroachDB StatefulSet follow these instructions:
+#### Build an image with Docker
+```bash
+# in ~/chirp_cockroach
+$ docker image build . -t chirp_cockroach_demo --build-arg MIX_ENV="prod" --build-arg PHX_SERVER="TRUE" --build-arg SECRET_KEY_BASE="X7f9dcyrqW2LBuvIxgqh6Oo27K+E7wIpugTv8IENfTM9y3TnCp99AoprFXDcQKwS" --build-arg DATABASE_URL="postgresql://root@cockroachdb.default.svc.cluster.local:26257/chirp_cockroach_dev?sslmode=disable"
+```
+#### Load image to minikube or kind
+```bash
+# minikube
+$ minikube --profile 'custom' image load chirp_cockroach_dev
+# kind
+$ kind load docker-image chirp_cockroach_demo
+```
+#### Setup database cluster
+```bash
+# in ~/chirp_cockroach/examples/k8s_statefulset
+# create headless service
+$ kubectl create -f cockroach-headless-sv.yaml
+# create pod budget
+$ kubectl create -f cockroach-pod-budget.yaml
+# create public load balancer
+$ kubectl create -f cockroach-public-lb.yaml
+# create CockroachDB StatefulSet
+$ kubectl create -f cockroach-sts.yaml
+```
+When stateful set is created pods will have status running but won't be ready.
+It's because we have started 3 separate nodes but we haven't initialized the cluster.
+To do that run:
+```bash
+kubectl create -f cluster-init.yaml
+```
+#### Create database
+The difference between docker-compose and skaffold is that when running stateful set no pod/container initializes the cluster and the database for us. We achieved cluster initialization by running a job with the above command. To create the database:
+```bash
+$ connect to one of the pods
+# kubectl exec -it cockroachdb-0 /bin/sh
+# connect CockroachDB sql console
+$ cockroach sql --insecure
+```
+Create the database
+```psql
+CREATE DATABASE chirp_cockroach_dev;
+# exit console
+$ \q
+```
+After that, you can disconnect from the pod
+
+#### Setup web application
+```bash
+# create service for web app
+$ kubectl create -f web-service.yaml
+# start application
+$ kubectl create -f web-pod.yaml
+```
+#### Connecting to the CockroachDB admin console and web application
+Start port forwarding for web and cockroach services to be able to access them from
+localhost:
+```bash
+# CockroachDB admin
+$ kubectl port-forward service/cockroachdb-public 8080
+# web app
+$ kubectl port-forward service/web 4000
+```
+NOTE: `kubectl port-forward` doesn't support multiple forwards so the above commands need to be run from 2 separate terminals.
+#### Cleanup
+To delete any minikube resources run:
+```bash
+$ kubectl delete -f filename.yaml
+```
+
 ## Helpful links:
 - [What is distributed SQL?](https://www.cockroachlabs.com/blog/what-is-distributed-sql/)
 - [CockroachDB FAQ](https://www.cockroachlabs.com/docs/stable/frequently-asked-questions.html)

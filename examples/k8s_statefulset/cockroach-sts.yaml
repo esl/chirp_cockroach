@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cockroachdb
+spec:
+  serviceName: "cockroachdb"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cockroachdb
+  template:
+    metadata:
+      labels:
+        app: cockroachdb
+    spec:
+      containers:
+        - name: cockroachdb
+          image: cockroachdb/cockroach:v22.1.6
+          imagePullPolicy: IfNotPresent
+          resources: {}
+          ports:
+            - containerPort: 26257
+              name: grpc
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: "/health?ready=1"
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 2
+          volumeMounts:
+            - name: datadir
+              mountPath: /cockroach/cockroach-data
+          env:
+            - name: COCKROACH_CHANNEL
+              value: kubernetes-insecure
+          command:
+            - "/bin/bash"
+            - "-ecx"
+            - "exec /cockroach/cockroach start --logtostderr --insecure --advertise-host $(hostname -f) --http-addr 0.0.0.0 --join cockroachdb-0.cockroachdb,cockroachdb-1.cockroachdb,cockroachdb-2.cockroachdb --cache 25% --max-sql-memory 25%"
+      terminationGracePeriodSeconds: 60
+      volumes:
+        - name: datadir
+          persistentVolumeClaim:
+            claimName: datadir
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+    - metadata:
+        name: datadir
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: 100Mi
