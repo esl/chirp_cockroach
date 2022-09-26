@@ -288,20 +288,19 @@ $ kind load docker-image chirp_cockroach_demo
 ```bash
 # in ~/chirp_cockroach/examples/k8s_statefulset
 # create headless service
-$ kubectl create -f cockroach-headless_sv.yaml
+$ kubectl create -f cockroach-headless-sv.yaml
 # create pod budget
 $ kubectl create -f cockroach-pod-budget.yaml
 # create public load balancer
-$ kubectl create -f cockroach-piblic-lb.yaml
+$ kubectl create -f cockroach-public-lb.yaml
 # create CockroachDB StatefulSet
-$ kubeclt create -f cockroach-sts.yaml
+$ kubectl create -f cockroach-sts.yaml
 ```
 When stateful set is created pods will have status running but won't be ready.
 It's because we have started 3 separate nodes but we haven't initialized the cluster.
 To do that run:
 ```bash
-kubectl create \
--f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/cluster-init.yaml
+kubectl create -f cluster-init.yaml
 ```
 #### Create database
 The difference between docker-compose and skaffold is that when running stateful set no pod/container initializes the cluster and the database for us. We achieved cluster initialization by running a job with the above command. To create the database:
@@ -331,9 +330,9 @@ Start port forwarding for web and cockroach services to be able to access them f
 localhost:
 ```bash
 # CockroachDB admin
-kubectl port-forward service/cockroachdb-public 8080
+$ kubectl port-forward service/cockroachdb-public 8080
 # web app
- kubectl port-forward service/web 4000
+$ kubectl port-forward service/web 4000
 ```
 NOTE: `kubectl port-forward` doesn't support multiple forwards so the above commands need to be run from 2 separate terminals.
 #### Cleanup
