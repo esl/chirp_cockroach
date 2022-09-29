@@ -6,8 +6,7 @@ metadata:
   name: web
 spec:
   containers:
-    - image: chirp_cockroach_demo
-      imagePullPolicy: Never
+    - image: web
       name: web
       ports:
         - name: app-port
