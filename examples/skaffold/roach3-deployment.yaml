@@ -22,6 +22,8 @@ spec:
             - start
             - --insecure
             - --join=roach1,roach2,roach3
+            - --advertise-addr=roach3
+            - --http-addr=0.0.0.0
           image: cockroachdb/cockroach:v22.1.6
           imagePullPolicy: IfNotPresent
           name: roach3

@@ -24,7 +24,7 @@ portForward:
 deploy:
   kubectl:
     manifests:
-      - "./examples/skaffold/crdb-init-deployment.yaml"
+      - "examples/skaffold/cluster-init.yaml"
       - "./examples/skaffold/roach1-service-headless.yaml"
       - "./examples/skaffold/roach2-service-headless.yaml"
       - "./examples/skaffold/roach3-service-headless.yaml"

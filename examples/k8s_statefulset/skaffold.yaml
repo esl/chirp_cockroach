@@ -1,0 +1,33 @@
+apiVersion: skaffold/v2beta29
+kind: Config
+metadata:
+  name: chirp-cockroach
+build:
+  artifacts:
+    - image: web
+      docker:
+        dockerfile: Dockerfile
+        buildArgs:
+          DATABASE_URL: "postgresql://root@cockroachdb-0.cockroachdb:26257/chirp_cockroach_dev?sslmode=disable"
+          SECRET_KEY_BASE: "X7f9dcyrqW2LBuvIxgqh6Oo27K+E7wIpugTv8IENfTM9y3TnCp99AoprFXDcQKwS"
+          PHX_SERVER: "true"
+          MIX_ENV: "prod"
+portForward:
+  - resourceType: pod
+    resourceName: web
+    port: 4000
+    localPort: 4000
+  - resourceType: statefulset
+    resourceName: cockroachdb
+    port: 8080
+    localPort: 8080
+deploy:
+  kubectl:
+    manifests:
+      - "examples/k8s_statefulset/cockroach-headless-sv.yaml"
+      - "examples/k8s_statefulset/cockroach-public-lb.yaml"
+      - "examples/k8s_statefulset/cockroach-pod-budget.yaml"
+      - "examples/k8s_statefulset/cockroach-sts.yaml"
+      - "examples/k8s_statefulset/web-service.yaml"
+      - "examples/k8s_statefulset/cluster-init.yaml"
+      - "examples/k8s_statefulset/web-pod.yaml"
