@@ -216,7 +216,7 @@ $ minikube start --profile custom
 $ skaffold config set --global local-cluster true
 % eval $(minikube -p custom docker-env)
 ```
-- Start Kind cluster
+- OR Start Kind cluster
 ```bash
 $ kind create cluster
 $ skaffold config set --kube-context kind-kind --global local-cluster true
@@ -229,6 +229,19 @@ $ skaffold dev -f examples/skaffold.yaml
 # build and deploy once
 $ skaffold run -f examples/skaffold.yaml
 ```
+- Create the database for the application (note that in logs you will see web pod crashing)
+```bash
+# in separate terminal list pods
+$ kubectl get pods
+# connect to any roach* pod
+$ kubectl exec -it roach-pod -- /bin/sh
+# connect to sql console
+$ cockroach sql --insecure
+# create the database
+$ CREATE DATABASE chirp_cockroach_dev;
+```
+Now you can close the terminal used for creating the database
+
 After starting of the Skaffold several things will happen:
 - Image of the phoenix app will be built
 - Images needed for CockroachDB will be pulled
@@ -318,12 +331,12 @@ $ \q
 ```
 After that, you can disconnect from the pod
 
-#### Setup web application
+#### Setup web application - from minikube local image
 ```bash
 # create service for web app
 $ kubectl create -f web-service.yaml
 # start application
-$ kubectl create -f web-pod.yaml
+$ kubectl create -f web-pod-local-image.yaml
 ```
 #### Connecting to the CockroachDB admin console and web application
 Start port forwarding for web and cockroach services to be able to access them from
@@ -335,11 +348,23 @@ $ kubectl port-forward service/cockroachdb-public 8080
 $ kubectl port-forward service/web 4000
 ```
 NOTE: `kubectl port-forward` doesn't support multiple forwards so the above commands need to be run from 2 separate terminals.
+
+#### StatefulSet with Skaffold
+In folder `./examples/k8s_statefulset` there is file `skaffold.yaml` this is a manifest that can be used with `skaffold dev` and `skaffold run` commands.
+From base folder `./chirp_cockroach` run
+```bash
+$ skaffold dev -f examples/k8s_statefulset/skaffold.yaml
+```
 #### Cleanup
 To delete any minikube resources run:
 ```bash
 $ kubectl delete -f filename.yaml
+# stop minikube local cluster
+$ minikube stop --profile custom
 ```
+**IMPORTANT** When running StatefulSet by hand and switching to skaffold there might be a possibility that deployment won't succeed the primary reason might be that `cluster-init` job is failing. This happens because when stateful set was created
+Persisten Volume Claims were assigned to pods with CockroachDB and the cluster was already
+initialized. To avoid this crash comment out `cluster-init.yaml` in the file `./examples/k8s_statefulset/skaffold.yaml` (line 32)
 
 ## Helpful links:
 - [What is distributed SQL?](https://www.cockroachlabs.com/blog/what-is-distributed-sql/)
