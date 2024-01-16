@@ -16,6 +16,7 @@ The easiest way to install all dependencies is to use a package manager. This pr
 versions in file the `.tool-versions` file used by `asdf` package manager. To install the packages run:
 
 ```bash
+$ for tool in $(awk '{ print $1 }' .tool-versions); do asdf plugin add $tool; done
 $ asdf install
 ```
 
