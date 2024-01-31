@@ -38,10 +38,7 @@ defmodule ChirpCockroach.TimelineTest do
 
     test "update_post/2 with valid data updates the post" do
       post = post_fixture()
-
-      update_attrs = %{
-        body: "some updated body"
-      }
+      update_attrs = %{body: "some updated body", likes_count: 43, reposts_count: 43, username: "some updated username"}
 
       assert {:ok, %Post{} = post} = Timeline.update_post(post, update_attrs)
       assert post.body == "some updated body"
