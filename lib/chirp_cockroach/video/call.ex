@@ -71,10 +71,3 @@ defmodule ChirpCockroach.Video.Call do
     end
   end
 end
-
-# room = ChirpCockroach.Video.get_room!(937337471011454977)
-# ChirpCockroach.Video.Call.reset_call(room)
-# peer = %ChirpCockroach.Video.Peer{id: "123"}
-# ChirpCockroach.Video.Call.join(room, peer)
-# ChirpCockroach.Video.get_call(room)
-# ChirpCockroach.Video.get_room_participants!(937337471011454977)

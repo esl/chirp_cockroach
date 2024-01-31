@@ -1,20 +1,5 @@
 version: "3"
 services:
-  web:
-    container_name: web
-    hostname: web
-    build:
-      dockerfile: Dockerfile
-      args:
-        DATABASE_URL: "postgresql://root@roach1:26257/chirp_cockroach_dev?sslmode=disable"
-        SECRET_KEY_BASE: "X7f9dcyrqW2LBuvIxgqh6Oo27K+E7wIpugTv8IENfTM9y3TnCp99AoprFXDcQKwS"
-        PHX_SERVER: "true"
-        MIX_ENV: "prod"
-    ports:
-      - 4000:4000
-    restart: on-failure
-    networks:
-      - roachnet
   crdb-init:
     container_name: crdb-init
     hostname: crdb-init
