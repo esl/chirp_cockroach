@@ -30,10 +30,10 @@ defmodule ChirpCockroachWeb.PostLive.PostComponent do
               </a>
             </div>
             <div class="col">
-              <.link patch={Routes.post_index_path(@socket, :edit, @post.id)}>
+              <.link id={"post-#{@post.id}-edit"} patch={Routes.post_index_path(@socket, :edit, @post.id)}>
                 <i class="far fa-edit"></i>
               </.link>
-              <%= link to: "#", phx_click: "delete", phx_value_id: @post.id, data: [confirm: "Are you sure?"] do %>
+              <%= link to: "#", id: "post-#{@post.id}-delete", phx_click: "delete", phx_value_id: @post.id, data: [confirm: "Are you sure?"] do %>
               <i class="far fa-trash-alt"></i>
               <% end %>
             </div>

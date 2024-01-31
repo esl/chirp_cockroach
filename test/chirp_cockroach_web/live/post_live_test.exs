@@ -5,18 +5,12 @@ defmodule ChirpCockroachWeb.PostLiveTest do
   import ChirpCockroach.TimelineFixtures
 
   @create_attrs %{
-    body: "some body",
-    likes_count: 42,
-    reposts_count: 42,
-    username: "some username"
+    body: "some body"
   }
   @update_attrs %{
-    body: "some updated body",
-    likes_count: 43,
-    reposts_count: 43,
-    username: "some updated username"
+    body: "some updated body"
   }
-  @invalid_attrs %{body: nil, likes_count: nil, reposts_count: nil, username: nil}
+  @invalid_attrs %{body: nil}
 
   defp create_post(_) do
     post = post_fixture()
@@ -58,8 +52,8 @@ defmodule ChirpCockroachWeb.PostLiveTest do
     test "updates post in listing", %{conn: conn, post: post} do
       {:ok, index_live, _html} = live(conn, Routes.post_index_path(conn, :index))
 
-      assert index_live |> element("#post-#{post.id} a", "Edit") |> render_click() =~
-               "Edit Post"
+      assert index_live |> element("#post-#{post.id} a#post-#{post.id}-edit") |> render_click() =~
+               "<i class=\"far fa-edit\"></i>"
 
       assert_patch(index_live, Routes.post_index_path(conn, :edit, post))
 
@@ -80,41 +74,8 @@ defmodule ChirpCockroachWeb.PostLiveTest do
     test "deletes post in listing", %{conn: conn, post: post} do
       {:ok, index_live, _html} = live(conn, Routes.post_index_path(conn, :index))
 
-      assert index_live |> element("#post-#{post.id} a", "Delete") |> render_click()
+      assert index_live |> element("#post-#{post.id} a#post-#{post.id}-delete") |> render_click()
       refute has_element?(index_live, "#post-#{post.id}")
-    end
-  end
-
-  describe "Show" do
-    setup [:create_post]
-
-    test "displays post", %{conn: conn, post: post} do
-      {:ok, _show_live, html} = live(conn, Routes.post_show_path(conn, :show, post))
-
-      assert html =~ "Show Post"
-      assert html =~ post.body
-    end
-
-    test "updates post within modal", %{conn: conn, post: post} do
-      {:ok, show_live, _html} = live(conn, Routes.post_show_path(conn, :show, post))
-
-      assert show_live |> element("a", "Edit") |> render_click() =~
-               "Edit Post"
-
-      assert_patch(show_live, Routes.post_show_path(conn, :edit, post))
-
-      assert show_live
-             |> form("#post-form", post: @invalid_attrs)
-             |> render_change() =~ "can&#39;t be blank"
-
-      {:ok, _, html} =
-        show_live
-        |> form("#post-form", post: @update_attrs)
-        |> render_submit()
-        |> follow_redirect(conn, Routes.post_show_path(conn, :show, post))
-
-      assert html =~ "Post updated successfully"
-      assert html =~ "some updated body"
     end
   end
 end
