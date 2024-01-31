@@ -90,7 +90,9 @@ defmodule ChirpCockroach.Timeline do
 
   """
   def delete_post(%Post{} = post) do
-    Repo.delete(post)
+    post
+    |> Repo.delete()
+    |> broadcast(:post_deleted)
   end
 
   @doc """
