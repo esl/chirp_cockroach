@@ -1,47 +1,6 @@
-<h1><%= @room.name %></h1>
 
-<%= if @live_action in [:edit] do %>
-  <.modal return_to={Routes.room_show_path(@socket, :show, @room)}>
-    <.live_component
-      module={ChirpCockroachWeb.RoomLive.FormComponent}
-      id={@room.id}
-      title={@page_title}
-      action={@live_action}
-      room={@room}
-      return_to={Routes.room_show_path(@socket, :show, @room)}
-    />
-  </.modal>
-<% end %>
+import {loadRemote} from '/helpers';
 
-      <h3>Preview</h3>
-      <video id={"video-host-preview"} style="width: 320px; height: 240px; border: 1px solid red;" phx-hook="hostVideo"/>
-      <h4>You <%= @peer_id %></h4>
-
-      <%= if @peer_id do %>
-        <span><button phx-click="join-room">Join</button></span>
-      <% end %>
-
-  <h3 id={"room-#{@room.id}"} phx-hook="video"> Participants </h3>
-
-<div class="video-grid" id="participants" phx-update="stream">
-
-  <%= for {id, participant} <- @streams.participants do %>  
-    <div id={id}>
-      <%= if participant.id != @peer_id do %>
-        <video id={"video-#{participant.id}"} style="width: 320px; height: 240px; border: 1px solid red;" phx-hook="peerVideo"/>
-        <h4><%= participant.name %></h4>
-      <% else %>
-        <video id="video-host" style="width: 320px; height: 240px; border: 1px solid green;" phx-hook="hostVideo"/>
-        <h4>You</h4>
-        <% end %>
-    </div>
-  <% end %>
-</div>
-
-
-
-<script type="text/javascript" src={Routes.static_path(@socket, "/assets/helpers.js")}></script>
-<script type='text/javascript'>
   // web audio context
   var context = null;
 
@@ -55,7 +14,7 @@
   // model name
   var model_whisper = null;
 
-  var Module = {
+  export var Module = {
       print: printTextarea,
       printErr: printTextarea,
       setStatus: function(text) {
@@ -100,11 +59,11 @@
       }
   }
 
-  function loadWhisper(_model) {
+  export function loadWhisper(_model) {
     model = 'base.en'
       let urls = {
           'tiny.en': 'https://whisper.ggerganov.com/ggml-model-whisper-tiny.en.bin',
-          'base.en': 'http://localhost:4000/assets/whisper_model.bin',
+          'base.en': 'http://localhost:4000/assets/ggml-model-whisper-base.en.bin',
 
           'tiny-en-q5_1':  'https://whisper.ggerganov.com/ggml-model-whisper-tiny.en-q5_1.bin',
           'base-en-q5_1':  'https://whisper.ggerganov.com/ggml-model-whisper-base.en-q5_1.bin',
@@ -337,56 +296,4 @@
       stopRecording();
   }
 
-</script>
-<script type="text/javascript" src={Routes.static_path(@socket, "/assets/stream.js")}></script>
-
-
-<h1>Transcription</h1>
-
-<br />
-
-<div id="main-container">
-  Select the model you would like to use, click the "Start" button and start speaking
-
-  <br><br>
-
-  <div id="model-whisper">
-      Whisper model: <span id="model-whisper-status"></span>
-      <button id="fetch-whisper-tiny-en" onclick="loadWhisper('tiny.en')">tiny.en (75 MB)</button>
-      <button id="fetch-whisper-base-en" onclick="loadWhisper('base.en')">base.en (142 MB)</button>
-      <br><br>
-      Quantized models:<br><br>
-      <button id="fetch-whisper-tiny-en-q5_1"   onclick="loadWhisper('tiny-en-q5_1')">tiny.en (Q5_1, 31 MB)</button>
-      <button id="fetch-whisper-base-en-q5_1"   onclick="">base.en (Q5_1, 57 MB)</button>
-      <span id="fetch-whisper-progress"></span>
-
-      <!--
-          <input type="file" id="file" name="file" onchange="loadFile(event, 'whisper.bin')" />
-      -->
-  </div>
-
-  <br>
-
-  <div id="input">
-      <input id="peerId"/>
-      <button id="start"  onclick="onStart()" disabled>Start</button>
-      <button id="stop"   onclick="onStop()" disabled>Stop</button>
-      <button id="clear"  onclick="clearCache()">Clear Cache</button>
-  </div>
-
-  <br>
-
-  <div id="state">
-      Status: <b><span id="state-status">not started</span></b>
-
-      <pre id="state-transcribed">[The transcribed text will be displayed here]</pre>
-  </div>
-
-  <hr>
-</div>
-
-
-
-
-<span><.link patch={Routes.room_show_path(@socket, :edit, @room)} class="button">Edit</.link></span> |
-<span><.link navigate={Routes.room_index_path(@socket, :index)}>Back</.link></span>
+  require('./stream_whisper/stream')

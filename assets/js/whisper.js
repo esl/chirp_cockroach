@@ -1,47 +1,203 @@
-<h1><%= @room.name %></h1>
-
-<%= if @live_action in [:edit] do %>
-  <.modal return_to={Routes.room_show_path(@socket, :show, @room)}>
-    <.live_component
-      module={ChirpCockroachWeb.RoomLive.FormComponent}
-      id={@room.id}
-      title={@page_title}
-      action={@live_action}
-      room={@room}
-      return_to={Routes.room_show_path(@socket, :show, @room)}
-    />
-  </.modal>
-<% end %>
-
-      <h3>Preview</h3>
-      <video id={"video-host-preview"} style="width: 320px; height: 240px; border: 1px solid red;" phx-hook="hostVideo"/>
-      <h4>You <%= @peer_id %></h4>
-
-      <%= if @peer_id do %>
-        <span><button phx-click="join-room">Join</button></span>
-      <% end %>
-
-  <h3 id={"room-#{@room.id}"} phx-hook="video"> Participants </h3>
-
-<div class="video-grid" id="participants" phx-update="stream">
-
-  <%= for {id, participant} <- @streams.participants do %>  
-    <div id={id}>
-      <%= if participant.id != @peer_id do %>
-        <video id={"video-#{participant.id}"} style="width: 320px; height: 240px; border: 1px solid red;" phx-hook="peerVideo"/>
-        <h4><%= participant.name %></h4>
-      <% else %>
-        <video id="video-host" style="width: 320px; height: 240px; border: 1px solid green;" phx-hook="hostVideo"/>
-        <h4>You</h4>
-        <% end %>
-    </div>
-  <% end %>
-</div>
+/* Imports with <script> tag in appropriate places seems to not work
+No idea why, that's why content of this module is written inline, but left
+to have a common place in code
+*/
 
 
+function convertTypedArray(src, type) {
+    var buffer = new ArrayBuffer(src.byteLength);
+    var baseView = new src.constructor(buffer).set(src);
+    return new type(buffer);
+}
 
-<script type="text/javascript" src={Routes.static_path(@socket, "/assets/helpers.js")}></script>
-<script type='text/javascript'>
+
+export var printTextarea = (function() {
+    var element = document.getElementById('output');
+    if (element) element.value = ''; // clear browser cache
+    return function(text) {
+        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+        console.log(text);
+        if (element) {
+            element.value += text + "\n";
+            element.scrollTop = element.scrollHeight; // focus on bottom
+        }
+    };
+  })();
+
+  async function clearCache() {
+    if (confirm('Are you sure you want to clear the cache?\nAll the models will be downloaded again.')) {
+        indexedDB.deleteDatabase(dbName);
+        location.reload();
+    }
+  }
+
+  // fetch a remote file from remote URL using the Fetch API
+  async function fetchRemote(url, cbProgress, cbPrint) {
+    cbPrint('fetchRemote: downloading with fetch()...');
+
+    const response = await fetch(
+        url,
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/octet-stream',
+            },
+        }
+    );
+
+    if (!response.ok) {
+        cbPrint('fetchRemote: failed to fetch ' + url);
+        return;
+    }
+
+  const contentLength = response.headers.get('content-length');
+  const total = parseInt(contentLength, 10);
+  const reader = response.body.getReader();
+
+  var chunks = [];
+  var receivedLength = 0;
+  var progressLast = -1;
+
+  while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+          break;
+      }
+
+      chunks.push(value);
+      receivedLength += value.length;
+
+      if (contentLength) {
+          cbProgress(receivedLength/total);
+
+          var progressCur = Math.round((receivedLength / total) * 10);
+          if (progressCur != progressLast) {
+              cbPrint('fetchRemote: fetching ' + 10*progressCur + '% ...');
+              progressLast = progressCur;
+          }
+      }
+  }
+
+  var position = 0;
+  var chunksAll = new Uint8Array(receivedLength);
+
+  for (var chunk of chunks) {
+      chunksAll.set(chunk, position);
+      position += chunk.length;
+  }
+
+  return chunksAll;
+}
+
+// load remote data
+// - check if the data is already in the IndexedDB
+// - if not, fetch it from the remote URL and store it in the IndexedDB
+ function loadRemote(url, dst, size_mb, cbProgress, cbReady, cbCancel, cbPrint) {
+  if (!navigator.storage || !navigator.storage.estimate) {
+      cbPrint('loadRemote: navigator.storage.estimate() is not supported');
+  } else {
+      // query the storage quota and print it
+      navigator.storage.estimate().then(function (estimate) {
+          cbPrint('loadRemote: storage quota: ' + estimate.quota + ' bytes');
+          cbPrint('loadRemote: storage usage: ' + estimate.usage + ' bytes');
+      });
+  }
+
+  // check if the data is already in the IndexedDB
+  var rq = indexedDB.open(dbName, dbVersion);
+
+  rq.onupgradeneeded = function (event) {
+      var db = event.target.result;
+      if (db.version == 1) {
+          var os = db.createObjectStore('models', { autoIncrement: false });
+          cbPrint('loadRemote: created IndexedDB ' + db.name + ' version ' + db.version);
+      } else {
+          // clear the database
+          var os = event.currentTarget.transaction.objectStore('models');
+          os.clear();
+          cbPrint('loadRemote: cleared IndexedDB ' + db.name + ' version ' + db.version);
+      }
+  };
+
+  rq.onsuccess = function (event) {
+      var db = event.target.result;
+      var tx = db.transaction(['models'], 'readonly');
+      var os = tx.objectStore('models');
+      var rq = os.get(url);
+
+      rq.onsuccess = function (event) {
+          if (rq.result) {
+              cbPrint('loadRemote: "' + url + '" is already in the IndexedDB');
+              cbReady(dst, rq.result);
+          } else {
+              // data is not in the IndexedDB
+              cbPrint('loadRemote: "' + url + '" is not in the IndexedDB');
+
+              // alert and ask the user to confirm
+              if (!confirm(
+                  'You are about to download ' + size_mb + ' MB of data.\n' +
+                  'The model data will be cached in the browser for future use.\n\n' +
+                  'Press OK to continue.')) {
+                  cbCancel();
+                  return;
+              }
+
+              fetchRemote(url, cbProgress, cbPrint).then(function (data) {
+                  if (data) {
+                      // store the data in the IndexedDB
+                      var rq = indexedDB.open(dbName, dbVersion);
+                      rq.onsuccess = function (event) {
+                          var db = event.target.result;
+                          var tx = db.transaction(['models'], 'readwrite');
+                          var os = tx.objectStore('models');
+
+                          var rq = null;
+                          try {
+                              var rq = os.put(data, url);
+                          } catch (e) {
+                              cbPrint('loadRemote: failed to store "' + url + '" in the IndexedDB: \n' + e);
+                              cbCancel();
+                              return;
+                          }
+
+                          rq.onsuccess = function (event) {
+                              cbPrint('loadRemote: "' + url + '" stored in the IndexedDB');
+                              cbReady(dst, data);
+                          };
+
+                          rq.onerror = function (event) {
+                              cbPrint('loadRemote: failed to store "' + url + '" in the IndexedDB');
+                              cbCancel();
+                          };
+                      };
+                  }
+              });
+          }
+      };
+
+      rq.onerror = function (event) {
+          cbPrint('loadRemote: failed to get data from the IndexedDB');
+          cbCancel();
+      };
+  };
+
+  rq.onerror = function (event) {
+      cbPrint('loadRemote: failed to open IndexedDB');
+      cbCancel();
+  };
+
+  rq.onblocked = function (event) {
+      cbPrint('loadRemote: failed to open IndexedDB: blocked');
+      cbCancel();
+  };
+
+  rq.onabort = function (event) {
+      cbPrint('loadRemote: failed to open IndexedDB: abort');
+      cbCancel();
+  };
+}
+
   // web audio context
   var context = null;
 
@@ -55,7 +211,7 @@
   // model name
   var model_whisper = null;
 
-  var Module = {
+  export var Module = {
       print: printTextarea,
       printErr: printTextarea,
       setStatus: function(text) {
@@ -100,11 +256,10 @@
       }
   }
 
-  function loadWhisper(_model) {
-    model = 'base.en'
+  export function loadWhisper(model) {
       let urls = {
           'tiny.en': 'https://whisper.ggerganov.com/ggml-model-whisper-tiny.en.bin',
-          'base.en': 'http://localhost:4000/assets/whisper_model.bin',
+          'base.en': 'http://localhost:4000/assets/ggml-model-whisper-base.en.bin',
 
           'tiny-en-q5_1':  'https://whisper.ggerganov.com/ggml-model-whisper-tiny.en-q5_1.bin',
           'base-en-q5_1':  'https://whisper.ggerganov.com/ggml-model-whisper-base.en-q5_1.bin',
@@ -222,7 +377,7 @@
                           offlineContext.startRendering().then(function(renderedBuffer) {
                               audio = renderedBuffer.getChannelData(0);
 
-                              //printTextarea('js: audio recorded, size: ' + audio.length + ', old size: ' + (audio0 == null ? 0 : audio0.length));
+                              printTextarea('js: audio recorded, size: ' + audio.length + ', old size: ' + (audio0 == null ? 0 : audio0.length));
 
                               var audioAll = new Float32Array(audio0 == null ? audio.length : audio0.length + audio.length);
                               if (audio0 != null) {
@@ -296,6 +451,10 @@
   var transcribedAll = '';
 
   function onStart() {
+      const peerInputElement = document.getElementsByTagName("peerId");
+      const peerId = peerInputElement.value;
+      console.log(peerId);
+
       if (!instance) {
           instance = Module.init('whisper.bin');
 
@@ -336,57 +495,3 @@
   function onStop() {
       stopRecording();
   }
-
-</script>
-<script type="text/javascript" src={Routes.static_path(@socket, "/assets/stream.js")}></script>
-
-
-<h1>Transcription</h1>
-
-<br />
-
-<div id="main-container">
-  Select the model you would like to use, click the "Start" button and start speaking
-
-  <br><br>
-
-  <div id="model-whisper">
-      Whisper model: <span id="model-whisper-status"></span>
-      <button id="fetch-whisper-tiny-en" onclick="loadWhisper('tiny.en')">tiny.en (75 MB)</button>
-      <button id="fetch-whisper-base-en" onclick="loadWhisper('base.en')">base.en (142 MB)</button>
-      <br><br>
-      Quantized models:<br><br>
-      <button id="fetch-whisper-tiny-en-q5_1"   onclick="loadWhisper('tiny-en-q5_1')">tiny.en (Q5_1, 31 MB)</button>
-      <button id="fetch-whisper-base-en-q5_1"   onclick="">base.en (Q5_1, 57 MB)</button>
-      <span id="fetch-whisper-progress"></span>
-
-      <!--
-          <input type="file" id="file" name="file" onchange="loadFile(event, 'whisper.bin')" />
-      -->
-  </div>
-
-  <br>
-
-  <div id="input">
-      <input id="peerId"/>
-      <button id="start"  onclick="onStart()" disabled>Start</button>
-      <button id="stop"   onclick="onStop()" disabled>Stop</button>
-      <button id="clear"  onclick="clearCache()">Clear Cache</button>
-  </div>
-
-  <br>
-
-  <div id="state">
-      Status: <b><span id="state-status">not started</span></b>
-
-      <pre id="state-transcribed">[The transcribed text will be displayed here]</pre>
-  </div>
-
-  <hr>
-</div>
-
-
-
-
-<span><.link patch={Routes.room_show_path(@socket, :edit, @room)} class="button">Edit</.link></span> |
-<span><.link navigate={Routes.room_index_path(@socket, :index)}>Back</.link></span>

@@ -1,6 +1,5 @@
 import {Peer} from "peerjs"
 
-
 function addVideoStream(video, stream) {
     video.srcObject = stream;
     video.onloadedmetadata = (e) => {
@@ -31,7 +30,7 @@ function getUserStream(stream_callback) {
 
     if (getUserMedia) {
         navigator.getUserMedia(
-            { audio: false, video: { width: 320, height: 240 } },
+            { audio: true, video: { width: 320, height: 240 } },
             (stream) => {
                 stream_callback(stream)
             },

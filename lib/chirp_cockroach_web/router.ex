@@ -1,6 +1,12 @@
 defmodule ChirpCockroachWeb.Router do
   use ChirpCockroachWeb, :router
 
+  def put_embedder_opener_cors(conn, _) do
+    conn = conn
+    |> Plug.Conn.put_resp_header("Cross-Origin-Embedder-Policy", "require-corp")
+    |> Plug.Conn.put_resp_header("Cross-Origin-Opener-Policy", "same-origin")
+  end
+
   pipeline :browser do
     plug(:accepts, ["html"])
     plug(:fetch_session)
@@ -8,6 +14,7 @@ defmodule ChirpCockroachWeb.Router do
     plug(:put_root_layout, {ChirpCockroachWeb.LayoutView, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
+    plug(:put_embedder_opener_cors)
   end
 
   pipeline :api do
