@@ -17,9 +17,11 @@ defmodule ChirpCockroach.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: ChirpCockroach.PubSub},
       # Start the Endpoint (http/https)
-      ChirpCockroachWeb.Endpoint
+      ChirpCockroachWeb.Endpoint,
       # Start a worker by calling: ChirpCockroach.Worker.start_link(arg)
-      # {ChirpCockroach.Worker, arg}
+      # {ChirpCockroach.Worker, arg},
+      # TODO(rafalskorupa): Add supervisor
+      ChirpCockroach.Audio.Whisper
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
