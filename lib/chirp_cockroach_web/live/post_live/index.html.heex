@@ -15,10 +15,15 @@
 
 
 
-<div id="posts", phx-update="prepend">
-  <%= for post <- @posts do %>
-    <%= live_component ChirpCockroachWeb.PostLive.PostComponent, id: post.id, post: post %>
+<div id="posts" phx-update="stream">
+  <%= for {id, post} <- @streams.posts do %>
+      <.live_component module={ChirpCockroachWeb.PostLive.PostComponent} id={id} post={post} />
   <% end %>
 </div>
 
-<span><%= live_patch "New Post", to: Routes.post_index_path(@socket, :new) %></span>
+
+<span>
+  <.link patch={Routes.post_index_path(@socket, :new)}>
+    New Post
+  </.link>
+</span>
