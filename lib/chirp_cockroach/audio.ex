@@ -6,6 +6,9 @@ defmodule ChirpCockroach.Audio do
   ChirpCockroach.Audio.whisper("./sample.mp3")
 
   """
+
+
+
   @doc """
   whisper("sample.mp3") will IO.puts a transcribed text with timestamps
   """
@@ -49,6 +52,7 @@ defmodule ChirpCockroach.Audio do
   @spec convert_audio(String.t(), number(), number()) :: {number(), Nx.Tensor.t()}
   def convert_audio(path, timestamp, chunk_time) do
     args = ~w(-ac 1 -ar 16k -f f32le -ss #{timestamp} -t #{chunk_time} -v quiet -)
+    IO.inspect(["ffmpeg", ["-i", path] ++ args])
     {data, 0} = System.cmd("ffmpeg", ["-i", path] ++ args)
 
     {timestamp, Nx.from_binary(data, :f32)}

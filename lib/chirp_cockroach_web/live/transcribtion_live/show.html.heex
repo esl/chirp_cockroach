@@ -1,0 +1,50 @@
+<h1>Transcribe</h1>
+
+
+<form id="upload-form" phx-submit="save" phx-change="validate">
+    <div class="border d-flex align-items-center justify-content-center mb-3" phx-drop-target={@uploads.audio.ref}>
+        <.live_file_input upload={@uploads.audio} />
+        <div>Drag And Drop Audios</div>
+    </div>
+    <section>
+      <%# render each audio entry %>
+      <%= for entry <- @uploads.audio.entries do %>
+        <article class="upload-entry">
+
+          <figure>
+            <%# Phoenix.LiveView.Helpers.live_img_preview/2 renders a client-side preview %>
+            <%# live_img_preview entry %>
+            <figcaption><%= entry.client_name %></figcaption>
+          </figure>
+
+          <%# entry.progress will update automatically for in-flight entries %>
+          <progress value={entry.progress} max="100"> <%= entry.progress %>% </progress>
+
+          <%# a regular click event whose handler will invoke Phoenix.LiveView.cancel_upload/3 %>
+          <button phx-click="cancel-upload" phx-value-ref={entry.ref} aria-label="cancel">&times;</button>
+
+          <%# Phoenix.LiveView.Helpers.upload_errors/2 returns a list of error atoms %>
+          <%= for err <- upload_errors(@uploads.audio, entry) do %>
+            <%= error_to_string(err) %>
+          <% end %>
+
+        </article>
+      <% end %>
+
+      <%# Phoenix.LiveView.Helpers.upload_errors/1 returns a list of error atoms %>
+      <%= for err <- upload_errors(@uploads.audio) do %>
+        <%= error_to_string(err) %>
+      <% end %>
+    </section>
+    <%= if @uploads.audio.entries != [] do %>
+    <button>Upload </button>
+    <% end %>
+  </form>
+
+<button phx-click="transcribe">Transcribe</button>
+<list>
+    <%= for transcription <- @transcription do %>
+        <ul><span>[<%= transcription.timestamp %>]</span> <%= transcription.text %></ul>
+    <% end %>
+</list>
+
