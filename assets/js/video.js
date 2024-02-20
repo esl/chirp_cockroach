@@ -30,7 +30,7 @@ function getUserStream(stream_callback) {
 
     if (getUserMedia) {
         navigator.getUserMedia(
-            { audio: true, video: { width: 320, height: 240 } },
+            { audio: false, video: { width: 320, height: 240 } },
             (stream) => {
                 stream_callback(stream)
             },

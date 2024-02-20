@@ -2,9 +2,10 @@ defmodule ChirpCockroachWeb.Router do
   use ChirpCockroachWeb, :router
 
   def put_embedder_opener_cors(conn, _) do
-    conn = conn
-    |> Plug.Conn.put_resp_header("Cross-Origin-Embedder-Policy", "require-corp")
-    |> Plug.Conn.put_resp_header("Cross-Origin-Opener-Policy", "same-origin")
+    conn =
+      conn
+      |> Plug.Conn.put_resp_header("Cross-Origin-Embedder-Policy", "require-corp")
+      |> Plug.Conn.put_resp_header("Cross-Origin-Opener-Policy", "same-origin")
   end
 
   pipeline :browser do

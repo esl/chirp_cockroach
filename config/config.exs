@@ -27,22 +27,19 @@ config :esbuild,
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ],
   stream: [
-    args:
-     ~w(js/stream.js --bundle --platform=node --outdir=../priv/static/assets),
-     cd: Path.expand("../assets", __DIR__),
-     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+    args: ~w(js/stream.js --bundle --platform=node --outdir=../priv/static/assets),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ],
   whisper: [
-    args:
-     ~w(js/whisper.js --bundle --target=es2018 --outdir=../priv/static/assets),
-     cd: Path.expand("../assets", __DIR__),
-     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+    args: ~w(js/whisper.js --bundle --target=es2018 --outdir=../priv/static/assets),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ],
   libstream_worker: [
-    args:
-     ~w(js/libstream.worker.js --bundle --platform=node --outdir=../priv/static/assets),
-     cd: Path.expand("../assets", __DIR__),
-     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+    args: ~w(js/libstream.worker.js --bundle --platform=node --outdir=../priv/static/assets),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
 
 # Configures Elixir's Logger

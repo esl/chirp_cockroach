@@ -23,7 +23,8 @@ defmodule ChirpCockroachWeb.Endpoint do
     only: ~w(assets fonts images favicon.ico robots.txt),
     headers: %{
       "Cross-Origin-Embedder-Policy" => "require-corp",
-      "Cross-Origin-Opener-Policy" => "same-origin"}
+      "Cross-Origin-Opener-Policy" => "same-origin"
+    }
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

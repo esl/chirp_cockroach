@@ -14,7 +14,6 @@ defmodule ChirpCockroachWeb.RoomLive.Show do
     participants = Video.get_room_participants!(id)
     if connected?(socket), do: Video.subscribe(room)
 
-
     {:noreply,
      socket
      |> assign(:peer_id, nil)
@@ -37,8 +36,7 @@ defmodule ChirpCockroachWeb.RoomLive.Show do
     {:noreply,
      socket
      |> assign(:peer_id, peer_id)
-     |> assign(:page_title, page_title(socket.assigns.live_action))
-    }
+     |> assign(:page_title, page_title(socket.assigns.live_action))}
   end
 
   @impl true
