@@ -38,7 +38,8 @@ defmodule ChirpCockroachWeb.Router do
     live "/video_rooms/:id/show/edit", RoomLive.Show, :edit
     live "/video_rooms/:id/show/join", RoomLive.Show, :join
 
-    live "/transcribe", TranscribeLive.Show, :show
+    live "/transcribe/file", TranscribeLive.Upload, :index
+    live "/transcribe/microphone", TranscribeLive.Microphone, :index
   end
 
   # Other scopes may use custom stacks.
