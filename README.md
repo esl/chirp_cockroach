@@ -81,9 +81,7 @@ or as database URL:
 
 Due to limitation for using SharedStateBuffer page has to work in CORS, so external downloads doesn't work. To be able to download model from page and use whisper:
 
-1. Download whisper model(`https://whisper.ggerganov.com/ggml-model-whisper-base.en.bin`) and copy it to `priv/static/assets/whisper_model.bin`
-
-You can select different model, but adjust method `loadWhisper` in `room_live/show.html.heex`
+1. Download whisper model(`https://whisper.ggerganov.com/ggml-model-whisper-base.en-q5_1.bin`) and copy it to `priv/static/assets/whisper_model.bin`
 
 ## Basic setup using docker-compose
 
