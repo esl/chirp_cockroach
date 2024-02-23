@@ -7,16 +7,16 @@ defmodule ChirpCockroach.Application do
 
   @impl true
   def start(_type, _args) do
-
     {:ok, model_info} = Bumblebee.load_model({:hf, "openai/whisper-tiny"})
-{:ok, featurizer} = Bumblebee.load_featurizer({:hf, "openai/whisper-tiny"})
-{:ok, tokenizer} = Bumblebee.load_tokenizer({:hf, "openai/whisper-tiny"})
-{:ok, generation_config} = Bumblebee.load_generation_config({:hf, "openai/whisper-tiny"})
+    {:ok, featurizer} = Bumblebee.load_featurizer({:hf, "openai/whisper-tiny"})
+    {:ok, tokenizer} = Bumblebee.load_tokenizer({:hf, "openai/whisper-tiny"})
+    {:ok, generation_config} = Bumblebee.load_generation_config({:hf, "openai/whisper-tiny"})
 
     serving =
       Bumblebee.Audio.speech_to_text_whisper(model_info, featurizer, tokenizer, generation_config,
         compile: [batch_size: 4],
-        defn_options: [compiler: EXLA])
+        defn_options: [compiler: EXLA]
+      )
 
     children = [
       # Start the Ecto repository

@@ -1,5 +1,8 @@
-defmodule ChirpCockroachWeb.TranscribeLive.Show do
+defmodule ChirpCockroachWeb.TranscribeLive.Upload do
   use ChirpCockroachWeb, :live_view
+
+  alias ChirpCockroach.Audio
+  alias ChirpCockroach.Files
 
   @impl true
   def mount(_params, _session, socket) do
@@ -11,7 +14,11 @@ defmodule ChirpCockroachWeb.TranscribeLive.Show do
      |> assign(:uploaded_files, [])
      |> assign(:transcription_id, id)
      |> assign(:transcription, [])
-     |> allow_upload(:audio, accept: ~w(.mp3), max_entries: 10, max_file_size: 120_000_000)}
+     |> allow_upload(:audio,
+       accept: ~w(.mp3),
+       max_entries: 10,
+       max_file_size: 120_000_000
+     )}
   end
 
   def handle_event("transcribe", _, socket) do
@@ -20,21 +27,23 @@ defmodule ChirpCockroachWeb.TranscribeLive.Show do
 
   @impl true
   def handle_event("save", _, socket) do
-    Phoenix.PubSub.subscribe(ChirpCockroach.PubSub, "transcription")
+    pid = self()
 
-    uploaded_files =
-      consume_uploaded_entries(socket, :audio, fn %{path: path}, _entry ->
+    files = consume_uploaded_entries(socket, :audio, &process_tmp_audio_file/2)
+    IO.inspect(files)
+
+    Task.async_stream(files, fn %{path: path, filename: filename} ->
         ChirpCockroach.Audio.whisper(path, fn timestamp, %{chunks: [%{text: text}]} ->
-          Phoenix.PubSub.broadcast(ChirpCockroach.PubSub, "transcription", %{
-            timestamp: timestamp,
+          send(pid, {:transcription, %{
+            label: "#{filename}: (#{timestamp})",
             text: text
-          })
+          }})
         end)
 
-        {:ok, path}
-      end)
+        Files.delete_tmp_file(filename)
+    end)
 
-    {:noreply, update(socket, :uploaded_files, &(&1 ++ uploaded_files))}
+    {:noreply, socket}
   end
 
   def handle_event("validate", _params, socket) do
@@ -46,10 +55,17 @@ defmodule ChirpCockroachWeb.TranscribeLive.Show do
   end
 
   @impl true
-
-  def handle_info(%{timestamp: _timestamp, text: _text} = transcription, socket) do
-    {:noreply, assign(socket, :transcription, [transcription | socket.assigns.transcription])}
+  def handle_info({:transcription, entry}, socket) do
+    {:noreply, assign(socket, :transcription, [entry | socket.assigns.transcription])}
   end
+
+
+  defp process_tmp_audio_file(%{path: path}, _entry) do
+    upload_id = Ecto.UUID.generate()
+    filename = "#{upload_id}.mp3"
+    {:ok, %{path: Files.persist_tmp_file(path, "#{upload_id}.mp3"), filename: filename}}
+  end
+
 
   defp error_to_string(:too_large), do: "Too large"
   defp error_to_string(:not_accepted), do: "You have selected an unacceptable file type"

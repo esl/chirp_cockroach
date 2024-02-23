@@ -44,7 +44,7 @@
 <button phx-click="transcribe">Transcribe</button>
 <list>
     <%= for transcription <- @transcription do %>
-        <ul><span>[<%= transcription.timestamp %>]</span> <%= transcription.text %></ul>
+        <ul><span><%= transcription.label %>:</span> <%= transcription.text %></ul>
     <% end %>
 </list>
 
