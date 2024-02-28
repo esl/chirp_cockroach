@@ -32,15 +32,25 @@ defmodule ChirpCockroachWeb.TranscribeLive.Upload do
     files = consume_uploaded_entries(socket, :audio, &process_tmp_audio_file/2)
     IO.inspect(files)
 
-    Task.async_stream(files, fn %{path: path, filename: filename} ->
+    Task.async(fn ->
+      Enum.each(files, fn %{path: path, filename: filename} ->
+        IO.inspect(%{path: path})
+
         ChirpCockroach.Audio.whisper(path, fn timestamp, %{chunks: [%{text: text}]} ->
-          send(pid, {:transcription, %{
-            label: "#{filename}: (#{timestamp})",
-            text: text
-          }})
+          IO.inspect(text)
+
+          send(
+            pid,
+            {:transcription,
+             %{
+               label: "#{filename}: (#{timestamp})",
+               text: text
+             }}
+          )
         end)
 
         Files.delete_tmp_file(filename)
+      end)
     end)
 
     {:noreply, socket}
@@ -59,13 +69,12 @@ defmodule ChirpCockroachWeb.TranscribeLive.Upload do
     {:noreply, assign(socket, :transcription, [entry | socket.assigns.transcription])}
   end
 
-
   defp process_tmp_audio_file(%{path: path}, _entry) do
     upload_id = Ecto.UUID.generate()
     filename = "#{upload_id}.mp3"
-    {:ok, %{path: Files.persist_tmp_file(path, "#{upload_id}.mp3"), filename: filename}}
+    {:ok, path} = Files.persist_tmp_file(path, "#{upload_id}.mp3")
+    {:ok, %{path: path, filename: filename}}
   end
-
 
   defp error_to_string(:too_large), do: "Too large"
   defp error_to_string(:not_accepted), do: "You have selected an unacceptable file type"

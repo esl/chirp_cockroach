@@ -1,5 +1,17 @@
 const SAMPLING_RATE = 16_000;
 
+import {Peer} from "peerjs";
+
+const recordFromPeer = {
+    mounted() {
+        this.mediaRecorder = null;
+        this.peer = new Peer();
+
+
+
+    }
+}
+
 const Microphone = {
   mounted() {
     this.mediaRecorder = null;
@@ -25,7 +37,7 @@ const Microphone = {
         }
       });
 
-      this.mediaRecorder.start();
+      this.mediaRecorder.start(10000);
     });
   },
 
@@ -71,8 +83,6 @@ const Microphone = {
       (x, channel) => audioBuffer.getChannelData(channel)
     );
 
-    // Average all channels upfront, so the PCM is always mono
-
     for (let i = 0; i < pcmArray.length; i++) {
       let sum = 0;
 
@@ -91,7 +101,6 @@ const Microphone = {
       return buffer;
     }
 
-    // If the endianness differs, we swap bytes accordingly
     for (let i = 0; i < buffer.byteLength / 4; i++) {
       const b1 = buffer[i];
       const b2 = buffer[i + 1];
@@ -123,5 +132,6 @@ const Microphone = {
 
 
 export const MicrophoneHooks = {
-    microphone: Microphone
+    microphone: Microphone,
+    recordFromPeer: recordFromPeer
 };

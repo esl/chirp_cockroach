@@ -13,6 +13,15 @@
   </.modal>
 <% end %>
 
+  <h3>
+    Preview V1
+  </h3>
+  <.live_component module={ChirpCockroachWeb.Video.PreviewComponent} id="preview"/>
+  <.live_component module={ChirpCockroachWeb.Video.MicrophoneComponent} id="microphone" />
+  <.live_component module={ChirpCockroachWeb.Video.CameraComponent} id="camera" />
+
+
+
       <h3>Preview</h3>
       <video id={"video-host-preview"} style="width: 320px; height: 240px; border: 1px solid red;" phx-hook="hostVideo"/>
       <h4>You <%= @peer_id %></h4>
@@ -39,7 +48,7 @@
 </div>
 
 
-
+<%= if @live_action in [:whisper_wasm] do %>
 <h1>Transcription</h1>
 
 <br />
@@ -574,3 +583,5 @@ async function fetchRemote(url, cbProgress, cbPrint) {
 
 </script>
 <script type="text/javascript" src={Routes.static_path(@socket, "/assets/stream.js")}></script>
+
+<% end %>

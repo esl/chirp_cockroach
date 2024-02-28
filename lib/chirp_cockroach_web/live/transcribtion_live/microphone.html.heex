@@ -1,33 +1,11 @@
 <div class="h-screen w-screen flex items-center justify-center antialiased">
     <div class="flex flex-col items-center w-1/2">
       <div class="mb-6 text-gray-600 text-lg">
-        <h1>Press and hold</h1>
+        <h1>Press to record</h1>
       </div>
 
-      <button
-        type="button"
-        id="microphone"
-        phx-hook="microphone"
-        data-endianness={System.endianness()}
-      >
-        Record
-      </button>
 
-      <form phx-change="noop" phx-submit="noop" class="hidden" hidden>
-        <.live_file_input upload={@uploads.audio} />
-      </form>
-
-      <div class="mt-6 flex space-x-1.5 items-center text-gray-600 text-lg">
-        <div>Transcription:</div>
-        <.async_result :let={transcription} assign={@transcription} :if={@transcription}>
-          <:loading>
-            Loading
-          </:loading>
-          <:failed :let={_reason}>
-            <span>Oops, something went wrong!</span>
-          </:failed>
-          <span class="text-gray-900 font-medium"><%= transcription %></span>
-        </.async_result>
-      </div>
+      <.live_component id="microphone" module={ChirpCockroachWeb.Video.MicrophoneComponent} />
+      <.live_component id="transcription" module={ChirpCockroachWeb.Video.TranscriptionComponent} stream_id="host_audio" />
     </div>
   </div>
