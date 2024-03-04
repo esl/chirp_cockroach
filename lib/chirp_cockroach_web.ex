@@ -17,12 +17,20 @@ defmodule ChirpCockroachWeb do
   and import those modules here.
   """
 
+  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+
+  use Phoenix.VerifiedRoutes,
+  endpoint: ChirpCockroachWeb.Endpoint,
+  router: ChirpCockroachWeb.Router
+
   def controller do
     quote do
       use Phoenix.Controller, namespace: ChirpCockroachWeb
 
       import Plug.Conn
       alias ChirpCockroachWeb.Router.Helpers, as: Routes
+
+      unquote(verified_routes())
     end
   end
 
@@ -90,11 +98,16 @@ defmodule ChirpCockroachWeb do
       import Phoenix.Component
       import ChirpCockroachWeb.LiveHelpers
 
+      import ChirpCockroachWeb.CoreComponents
+
+
       # Import basic rendering functionality (render, render_layout, etc)
       import Phoenix.View
 
       import ChirpCockroachWeb.ErrorHelpers
       alias ChirpCockroachWeb.Router.Helpers, as: Routes
+
+      unquote(verified_routes())
     end
   end
 
@@ -104,4 +117,13 @@ defmodule ChirpCockroachWeb do
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
   end
+
+   def verified_routes do
+       quote do
+         use Phoenix.VerifiedRoutes,
+           endpoint: ChirpCockroachWeb.Endpoint,
+           router: ChirpCockroachWeb.Router,
+           statics: ChirpCockroachWeb.static_paths()
+       end
+     end
 end

@@ -33,6 +33,8 @@ defmodule ChirpCockroach.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:bcrypt_elixir, "~> 3.0"},
+      {:swoosh, "~> 1.15"},
       {:phoenix, "~> 1.7"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.6"},
@@ -47,7 +49,9 @@ defmodule ChirpCockroach.MixProject do
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
       {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"}
+      {:plug_cowboy, "~> 2.5"},
+      {:gettext, "~> 0.24.0"},
+      {:hackney, "~> 1.9"}
     ]
   end
 
