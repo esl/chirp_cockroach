@@ -7,6 +7,8 @@
 # General application configuration
 import Config
 
+config :nx, default_backend: EXLA.Backend
+
 config :chirp_cockroach,
   ecto_repos: [ChirpCockroach.Repo]
 
@@ -29,6 +31,21 @@ config :esbuild,
   default: [
     args:
       ~w(js/app.js --bundle --target=es2018 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ],
+  stream: [
+    args: ~w(js/stream.js --bundle --platform=node --outdir=../priv/static/assets),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ],
+  whisper: [
+    args: ~w(js/whisper.js --bundle --target=es2018 --outdir=../priv/static/assets),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ],
+  libstream_worker: [
+    args: ~w(js/libstream.worker.js --bundle --platform=node --outdir=../priv/static/assets),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]

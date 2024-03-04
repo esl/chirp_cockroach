@@ -42,7 +42,7 @@ defmodule ChirpCockroach.Video.Call do
   end
 
   defp remove_participant(state, pid) do
-    peer = Enum.find(state.peers, & &1.pid == pid)
+    peer = Enum.find(state.peers, &(&1.pid == pid))
     peers = state.peers |> Enum.reject(&(&1.pid == pid))
     state = %__MODULE__{state | peers: peers}
 

@@ -3,6 +3,13 @@ defmodule ChirpCockroachWeb.Router do
 
   import ChirpCockroachWeb.UserAuth
 
+  def put_embedder_opener_cors(conn, _) do
+    conn =
+      conn
+      |> Plug.Conn.put_resp_header("Cross-Origin-Embedder-Policy", "require-corp")
+      |> Plug.Conn.put_resp_header("Cross-Origin-Opener-Policy", "same-origin")
+  end
+
   pipeline :browser do
     plug(:accepts, ["html"])
     plug(:fetch_session)
@@ -10,6 +17,7 @@ defmodule ChirpCockroachWeb.Router do
     plug(:put_root_layout, {ChirpCockroachWeb.LayoutView, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
+    plug(:put_embedder_opener_cors)
   end
 
   pipeline :api do
@@ -29,8 +37,12 @@ defmodule ChirpCockroachWeb.Router do
     live "/video_rooms/:id/edit", RoomLive.Index, :edit
 
     live "/video_rooms/:id", RoomLive.Show, :show
+    live "/video_rooms/:id/whisper-wasm", RoomLive.Show, :show
     live "/video_rooms/:id/show/edit", RoomLive.Show, :edit
     live "/video_rooms/:id/show/join", RoomLive.Show, :join
+
+    live "/transcribe/file", TranscribeLive.Upload, :index
+    live "/transcribe/microphone", TranscribeLive.Microphone, :index
   end
 
   # Other scopes may use custom stacks.

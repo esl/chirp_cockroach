@@ -7,6 +7,17 @@ defmodule ChirpCockroach.Application do
 
   @impl true
   def start(_type, _args) do
+    {:ok, model_info} = Bumblebee.load_model({:hf, "openai/whisper-tiny"})
+    {:ok, featurizer} = Bumblebee.load_featurizer({:hf, "openai/whisper-tiny"})
+    {:ok, tokenizer} = Bumblebee.load_tokenizer({:hf, "openai/whisper-tiny"})
+    {:ok, generation_config} = Bumblebee.load_generation_config({:hf, "openai/whisper-tiny"})
+
+    serving =
+      Bumblebee.Audio.speech_to_text_whisper(model_info, featurizer, tokenizer, generation_config,
+        compile: [batch_size: 4],
+        defn_options: [compiler: EXLA]
+      )
+
     children = [
       # Start the Ecto repository
       ChirpCockroach.Repo,
@@ -17,9 +28,12 @@ defmodule ChirpCockroach.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: ChirpCockroach.PubSub},
       # Start the Endpoint (http/https)
-      ChirpCockroachWeb.Endpoint
+      ChirpCockroachWeb.Endpoint,
       # Start a worker by calling: ChirpCockroach.Worker.start_link(arg)
-      # {ChirpCockroach.Worker, arg}
+      # {ChirpCockroach.Worker, arg},
+      # TODO(rafalskorupa): Add supervisor
+      ChirpCockroach.Audio.Whisper,
+      {Nx.Serving, serving: serving, name: ChirpCockroach.Serving.Whisper, batch_timeout: 100}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
