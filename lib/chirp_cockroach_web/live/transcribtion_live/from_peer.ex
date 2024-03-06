@@ -2,7 +2,7 @@ defmodule ChirpCockroachWeb.TranscribeLive.TranscribePeer do
   use ChirpCockroachWeb, :live_component
 
   @impl true
-  def mount( socket) do
+  def mount(socket) do
     {:ok,
      socket
      |> assign(transcription: nil)

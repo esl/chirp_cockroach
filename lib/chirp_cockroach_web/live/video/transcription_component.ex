@@ -3,7 +3,12 @@ defmodule ChirpCockroachWeb.Video.TranscriptionComponent do
 
   def mount(socket) do
     upload_id = Ecto.UUID.generate()
-    {:ok, socket |> assign(:transcription, nil) |> assign(:upload_id, upload_id) |> allow_upload(upload_id, accept: :any, progress: &handle_progress/3, auto_upload: true)}
+
+    {:ok,
+     socket
+     |> assign(:transcription, nil)
+     |> assign(:upload_id, upload_id)
+     |> allow_upload(upload_id, accept: :any, progress: &handle_progress/3, auto_upload: true)}
   end
 
   @impl true
@@ -51,7 +56,6 @@ defmodule ChirpCockroachWeb.Video.TranscriptionComponent do
 
   defp handle_progress(_name, _entry, socket), do: {:noreply, socket}
 
-
   @impl true
   def handle_event("noop", %{}, socket) do
     # We need phx-change and phx-submit on the form for live uploads,
@@ -60,8 +64,11 @@ defmodule ChirpCockroachWeb.Video.TranscriptionComponent do
     {:noreply, socket}
   end
 
-  def handle_info(%Phoenix.Socket.Message{event: "transcribe", payload: {:binary, payload}}, socket) do
-      Nx.from_binary(payload, :f32) |> IO.inspect()
-      {:noreply, socket}
+  def handle_info(
+        %Phoenix.Socket.Message{event: "transcribe", payload: {:binary, payload}},
+        socket
+      ) do
+    Nx.from_binary(payload, :f32) |> IO.inspect()
+    {:noreply, socket}
   end
 end

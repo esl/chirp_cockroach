@@ -1,0 +1,34 @@
+<div class="chat">
+  <.irc_room_list rooms={@streams.rooms} />
+
+  <%= if @live_action in [:index] do %>
+    <ul id="browserooms" phx-update="stream">
+      <%= for room <- @all_rooms do %>
+        <li id="room-{id}">
+          <%= room.name %> <span><a phx-click="join-room" phx-value-room_id={room.id}>Join</a></span>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <%= if @live_action in [:new] do %>
+    <div class="container">
+      <.live_component
+      module={ChirpCockroachWeb.IrcLive.FormComponent}
+      id={@room.id || :new}
+      current_user={@current_user}
+      title={@page_title}
+      action={@live_action}
+      room={@room}
+      return_to={~p"/irc"}
+    />
+    </div>
+  <% end %>
+
+  <%= if @room && @room.id do %>
+    <.irc_messages id="room-messages" room={@room} messages={@streams.messages} current_user={@current_user} />
+    <.irc_participants users={@room.users} />
+  <% end %>
+
+
+</div>

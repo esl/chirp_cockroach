@@ -1,0 +1,2 @@
+defmodule ChirpCockroachWeb.MultimediaComponents do
+end

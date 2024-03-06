@@ -20,8 +20,8 @@ defmodule ChirpCockroachWeb do
   def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
 
   use Phoenix.VerifiedRoutes,
-  endpoint: ChirpCockroachWeb.Endpoint,
-  router: ChirpCockroachWeb.Router
+    endpoint: ChirpCockroachWeb.Endpoint,
+    router: ChirpCockroachWeb.Router
 
   def controller do
     quote do
@@ -100,7 +100,6 @@ defmodule ChirpCockroachWeb do
 
       import ChirpCockroachWeb.CoreComponents
 
-
       # Import basic rendering functionality (render, render_layout, etc)
       import Phoenix.View
 
@@ -118,12 +117,12 @@ defmodule ChirpCockroachWeb do
     apply(__MODULE__, which, [])
   end
 
-   def verified_routes do
-       quote do
-         use Phoenix.VerifiedRoutes,
-           endpoint: ChirpCockroachWeb.Endpoint,
-           router: ChirpCockroachWeb.Router,
-           statics: ChirpCockroachWeb.static_paths()
-       end
-     end
+  def verified_routes do
+    quote do
+      use Phoenix.VerifiedRoutes,
+        endpoint: ChirpCockroachWeb.Endpoint,
+        router: ChirpCockroachWeb.Router,
+        statics: ChirpCockroachWeb.static_paths()
+    end
+  end
 end

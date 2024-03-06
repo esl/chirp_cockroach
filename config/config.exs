@@ -12,11 +12,7 @@ config :nx, default_backend: EXLA.Backend
 config :chirp_cockroach,
   ecto_repos: [ChirpCockroach.Repo]
 
-
 config :chirp_cockroach, ChirpCockroach.Mailer, adapter: Swoosh.Adapters.Local
-
-
-
 
 # Configures the endpoint
 config :chirp_cockroach, ChirpCockroachWeb.Endpoint,

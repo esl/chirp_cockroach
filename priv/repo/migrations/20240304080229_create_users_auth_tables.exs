@@ -2,14 +2,16 @@ defmodule ChirpCockroach.Repo.Migrations.CreateUsersAuthTables do
   use Ecto.Migration
 
   def change do
-
     create table(:users) do
-      add :email, :string, null: false # COLLATE "en-US-u-ks-level2"
+      add :nickname, :string, null: false
+      # COLLATE "en-US-u-ks-level2"
+      add :email, :string, null: false
       add :hashed_password, :string, null: false
       add :confirmed_at, :naive_datetime
       timestamps()
     end
 
+    create unique_index(:users, [:nickname])
     create unique_index(:users, [:email])
 
     create table(:users_tokens) do

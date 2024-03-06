@@ -3,6 +3,7 @@ defmodule ChirpCockroach.Accounts.User do
   import Ecto.Changeset
 
   schema "users" do
+    field :nickname, :string
     field :email, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
@@ -36,9 +37,10 @@ defmodule ChirpCockroach.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password])
+    |> cast(attrs, [:nickname, :email, :password])
     |> validate_email(opts)
     |> validate_password(opts)
+    |> unique_constraint(:nickname)
   end
 
   defp validate_email(changeset, opts) do

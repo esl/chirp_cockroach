@@ -1,8 +1,6 @@
 defmodule ChirpCockroachWeb.Video.MicrophoneComponent do
   use ChirpCockroachWeb, :live_component
 
-
-
   @impl true
   def render(assigns) do
     ~H"""

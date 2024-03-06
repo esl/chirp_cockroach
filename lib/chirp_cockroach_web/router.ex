@@ -18,6 +18,7 @@ defmodule ChirpCockroachWeb.Router do
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
     plug(:put_embedder_opener_cors)
+    plug(:fetch_current_user)
   end
 
   pipeline :api do
@@ -90,6 +91,12 @@ defmodule ChirpCockroachWeb.Router do
       on_mount: [{ChirpCockroachWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+
+      scope "/irc", IrcLive do
+        live("/", Index, :index)
+        live("/new", Index, :new)
+        live("/:id", Index, :show)
+      end
     end
   end
 
