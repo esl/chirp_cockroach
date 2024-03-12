@@ -46,9 +46,17 @@ defmodule ChirpCockroach.Accounts.User do
   defp validate_email(changeset, opts) do
     changeset
     |> validate_required([:email])
+    |> lowercase_email()
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
     |> validate_length(:email, max: 160)
     |> maybe_validate_unique_email(opts)
+  end
+
+  defp lowercase_email(changeset) do
+    case get_change(changeset, :email) do
+      nil -> changeset
+      email -> put_change(changeset, :email, String.downcase(email))
+    end
   end
 
   defp validate_password(changeset, opts) do

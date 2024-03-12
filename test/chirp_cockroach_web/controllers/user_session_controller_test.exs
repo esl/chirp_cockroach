@@ -15,12 +15,12 @@ defmodule ChirpCockroachWeb.UserSessionControllerTest do
         })
 
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/posts"
 
       # Now do a logged in request and assert on the menu
-      conn = get(conn, ~p"/")
+      conn = get(conn, ~p"/posts")
       response = html_response(conn, 200)
-      assert response =~ user.email
+      assert response =~ user.nickname
       assert response =~ ~p"/users/settings"
       assert response =~ ~p"/users/log_out"
     end
@@ -36,7 +36,7 @@ defmodule ChirpCockroachWeb.UserSessionControllerTest do
         })
 
       assert conn.resp_cookies["_chirp_cockroach_web_user_remember_me"]
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/posts"
     end
 
     test "logs the user in with return to", %{conn: conn, user: user} do
@@ -65,7 +65,7 @@ defmodule ChirpCockroachWeb.UserSessionControllerTest do
           }
         })
 
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/posts"
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Account created successfully"
     end
 

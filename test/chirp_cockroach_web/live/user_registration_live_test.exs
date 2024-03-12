@@ -17,7 +17,7 @@ defmodule ChirpCockroachWeb.UserRegistrationLiveTest do
         conn
         |> log_in_user(user_fixture())
         |> live(~p"/users/register")
-        |> follow_redirect(conn, "/")
+        |> follow_redirect(conn, "/posts")
 
       assert {:ok, _conn} = result
     end
@@ -40,17 +40,17 @@ defmodule ChirpCockroachWeb.UserRegistrationLiveTest do
     test "creates account and logs the user in", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/register")
 
-      email = unique_user_email()
-      form = form(lv, "#registration_form", user: valid_user_attributes(email: email))
+      nickname = unique_nickname()
+      form = form(lv, "#registration_form", user: valid_user_attributes(nickname: nickname))
       render_submit(form)
       conn = follow_trigger_action(form, conn)
 
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/posts"
 
       # Now do a logged in request and assert on the menu
-      conn = get(conn, "/")
+      conn = get(conn, "/posts")
       response = html_response(conn, 200)
-      assert response =~ email
+      assert response =~ nickname
       assert response =~ "Settings"
       assert response =~ "Log out"
     end

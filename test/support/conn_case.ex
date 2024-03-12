@@ -28,6 +28,10 @@ defmodule ChirpCockroachWeb.ConnCase do
 
       # The default endpoint for testing
       @endpoint ChirpCockroachWeb.Endpoint
+
+      use Phoenix.VerifiedRoutes,
+  endpoint: ChirpCockroachWeb.Endpoint,
+  router: ChirpCockroachWeb.Router
     end
   end
 
