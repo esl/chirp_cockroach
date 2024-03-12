@@ -8,9 +8,17 @@
     phx-submit="save">
     
     <%= textarea f, :text %>
+
     
     <div>
-      <%= submit "Save", phx_disable_with: "Saving..." %>
+      <%= submit "Send", phx_disable_with: "Saving..." %>
+      <.live_component id="microphone" module={ChirpCockroachWeb.Video.MicrophoneComponent} upload="audio_file"/>
     </div>
+
     </.form>
+
+
+    <form phx-change="noop" phx-submit="noop" phx-target={@myself}>
+        <.live_file_input id={"audio-file-upload"} upload={@uploads[:audio_file]} hidden phx-target={@myself}/>
+    </form>
 </div>

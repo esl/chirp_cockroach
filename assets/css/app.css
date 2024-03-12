@@ -125,8 +125,23 @@
 }
 
 
+.message {
+  margin: 3px;
+}
 
+.me {
+  background-color: rgba(65, 166, 186, 0.534);
+}
 
+.bubble {
+  background-color: #f0f0f0;
+  border-radius: 11px;
+  padding: 5px;
+}
+
+.user {
+  color: #2980b9;
+}
 .chat {
   min-width: 620px;
   min-height: 300px;

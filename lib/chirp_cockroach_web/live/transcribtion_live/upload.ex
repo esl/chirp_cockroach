@@ -1,7 +1,6 @@
 defmodule ChirpCockroachWeb.TranscribeLive.Upload do
   use ChirpCockroachWeb, :live_view
 
-  alias ChirpCockroach.Audio
   alias ChirpCockroach.Files
 
   @impl true

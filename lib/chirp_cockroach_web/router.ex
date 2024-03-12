@@ -6,8 +6,8 @@ defmodule ChirpCockroachWeb.Router do
   def put_embedder_opener_cors(conn, _) do
     conn =
       conn
-      |> Plug.Conn.put_resp_header("Cross-Origin-Embedder-Policy", "require-corp")
-      |> Plug.Conn.put_resp_header("Cross-Origin-Opener-Policy", "same-origin")
+      |> Plug.Conn.put_resp_header("cross-origin-embedder-policy", "require-corp")
+      |> Plug.Conn.put_resp_header("cross-origin-opener-policy", "same-origin")
   end
 
   pipeline :browser do
@@ -32,15 +32,6 @@ defmodule ChirpCockroachWeb.Router do
     live("/posts/new", PostLive.Index, :new)
     live("/posts/:id/edit", PostLive.Index, :edit)
     get("/", PageController, :index)
-
-    live "/video_rooms", RoomLive.Index, :index
-    live "/video_rooms/new", RoomLive.Index, :new
-    live "/video_rooms/:id/edit", RoomLive.Index, :edit
-
-    live "/video_rooms/:id", RoomLive.Show, :show
-    live "/video_rooms/:id/whisper-wasm", RoomLive.Show, :show
-    live "/video_rooms/:id/show/edit", RoomLive.Show, :edit
-    live "/video_rooms/:id/show/join", RoomLive.Show, :join
 
     live "/transcribe/file", TranscribeLive.Upload, :index
     live "/transcribe/microphone", TranscribeLive.Microphone, :index

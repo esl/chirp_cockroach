@@ -2,6 +2,7 @@ defmodule ChirpCockroachWeb.IrcLive.SendMessageComponent do
   use ChirpCockroachWeb, :live_component
 
   alias ChirpCockroach.Chats
+  alias ChirpCockroach.Files
 
   @impl true
   def update(%{message: message} = assigns, socket) do
@@ -10,6 +11,8 @@ defmodule ChirpCockroachWeb.IrcLive.SendMessageComponent do
     {:ok,
      socket
      |> assign(assigns)
+     |> allow_upload(:audio_file, accept: :any,  progress: &handle_progress/3, auto_upload: true)
+     |> allow_upload(:image_file, accept: :any, progress: &handle_progress/3, auto_upload: true)
      |> assign(:changeset, changeset)}
   end
 
@@ -38,12 +41,34 @@ defmodule ChirpCockroachWeb.IrcLive.SendMessageComponent do
     end
   end
 
-  def handle_event(first, second, socket) do
-    raise(%{
-      first: first,
-      second: second
-    })
+  def handle_event("noop", _, socket) do
+    {:noreply, socket}
+  end
+
+  defp handle_progress(:audio_file, entry, socket) when entry.done? do
+    [file] = consume_uploaded_entries(socket, :audio_file, &process_tmp_audio_file/2)
+
+    {:ok, _} = Chats.send_voice_to_room(socket.assigns.current_user, socket.assigns.room, file)
 
     {:noreply, socket}
   end
+
+  defp handle_progress(:image_file, entry, socket) when entry.done? do
+    [file] = consume_uploaded_entries(socket, :audio_file, &process_tmp_audio_file/2)
+
+    {:ok, _} = Chats.send_voice_to_room(socket.assigns.current_user, socket.assigns.room, file)
+
+    {:noreply, socket}
+  end
+
+  defp handle_progress(_name, _entry, socket), do: {:noreply, socket}
+
+  defp process_tmp_audio_file(%{path: path} = info, _entry) do
+    upload_id = Ecto.UUID.generate()
+    filename = "#{upload_id}.mp3"
+    {:ok, %{path: path}} = Files.persist_file(path, "#{upload_id}.mp3")
+    {:ok, %{path: path, filename: filename}}
+  end
+
+
 end

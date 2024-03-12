@@ -3,31 +3,33 @@ defmodule ChirpCockroachWeb.IrcLive.IrcComponents do
 
   def irc_room_list(%{rooms: _} = assigns) do
     ~H"""
-    <ul class="list" id="rooms-list" phx-update="stream">
-    <%= for {id, room} <- @rooms do %>
-      <li id={id}>
-        <.link navigate={~p"/irc/#{room.id}"}><%= room.name %><span class="new"><%= Enum.count(room.users) %></span></.link>
+      <ul class="list" id="rooms-list" phx-update="stream">
+      <%= for {id, room} <- @rooms do %>
+        <li id={id}>
+          <.link navigate={~p"/irc/#{room.id}"}><%= room.name %><span class="new"><%= Enum.count(room.users) %></span></.link>
+        </li>
+      <% end %>
+      </ul>
+      <ul class="list">
+      <li>
+        <.link patch={~p"/irc"}>Browse Rooms</.link>
       </li>
-    <% end %>
-    <li>
-      <.link patch={~p"/irc"}>Browse Rooms</.link>
-    </li>
-    <li>
-      <.link patch={~p"/irc/new"}>New Room</.link>
-    </li>
-  </ul>
-  """
+      <li>
+        <.link patch={~p"/irc/new"}>New Room</.link>
+      </li>
+    </ul>
+    """
   end
 
   def irc_messages(%{messages: _, room: _, current_user: _current_user} = assigns) do
     ~H"""
     <div class="container">
-    <div class="message--container">
-      <table id="messages-#{@room.id}" class="messages" phx-update="stream">
+    <div class="chat">
+      <div id="messages-#{@room.id}" class="messages" phx-update="stream">
         <%= for {id, message} <- @messages do %>
           <.irc_message id={id} message={message} current_user={@current_user}/>
         <% end %>
-      </table>
+      </div>
     </div>
     <.live_component
     module={ChirpCockroachWeb.IrcLive.SendMessageComponent}
@@ -56,18 +58,38 @@ defmodule ChirpCockroachWeb.IrcLive.IrcComponents do
     case assigns.message.kind do
       :text ->
         ~H"""
-        <tr id={@id} class={@class}>
-          <td class="time">[<%= format_message_date(@message.inserted_at) %>]</td>
-          <td class="from user"><%= @message.user.nickname %></td>
-          <td class="text"><%= @message.text %></td>
-        </tr>
+        <div id={@id} class={"#{@class} bubble"}>
+          <span>[<%= format_message_date(@message.inserted_at) %>] </span> <span class="user"><%= @message.user.nickname %></span>
+          <br>
+          <span class="bubble"><%= @message.text %></span>
+        </div>
         """
 
       :event ->
         ~H"""
-        <tr id={@id} class={@class}>
-        <td class="event" colspan="3"><span class="user"><%= @message.user.nickname %></span> <%= @message.text %></td>
-        </tr>
+        <div id={@id} class={@class}>
+        <span>[<%= format_message_date(@message.inserted_at) %>] </span><span class="user"><%= @message.user.nickname %> </span> <span><%= @message.text %></span>
+        </div>
+        """
+
+      :voice ->
+        ~H"""
+        <div id={@id} class={"#{@class} bubble"}>
+        <span>[<%= format_message_date(@message.inserted_at) %>] </span><span class="user"><%= @message.user.nickname %></span>
+        <br>
+          <audio controls src={Routes.static_path(ChirpCockroachWeb.Endpoint, @message.file_path)}></audio>
+          <pre><%= @message.text %></pre>
+        </div>
+        """
+
+      :image ->
+        ~H"""
+        <div id={@id} class={"#{@class} bubble"}>
+        <span>[<%= format_message_date(@message.inserted_at) %>] </span><span class="user"><%= @message.user.nickname %></span><span> <%= @message.text || "said something..." %></span>
+        <br>
+          <audio controls src={Routes.static_path(ChirpCockroachWeb.Endpoint, @message.file_path)}></audio>
+          <pre><%= @message.text %></pre>
+        </div>
         """
     end
   end

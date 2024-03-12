@@ -1,6 +1,7 @@
 defmodule ChirpCockroachWeb.Video.TranscriptionComponent do
   use ChirpCockroachWeb, :live_component
 
+  @impl true
   def mount(socket) do
     upload_id = Ecto.UUID.generate()
 
@@ -40,6 +41,8 @@ defmodule ChirpCockroachWeb.Video.TranscriptionComponent do
       consume_uploaded_entry(socket, entry, fn %{path: path} ->
         {:ok, File.read!(path)}
       end)
+
+
 
     audio = Nx.from_binary(binary, :f32)
 

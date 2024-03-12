@@ -9,8 +9,4 @@ defmodule ChirpCockroachWeb.Video.CameraComponent do
     </button>
     """
   end
-
-  def handle_event(_, %{}, socket) do
-    {:noreply, socket}
-  end
 end

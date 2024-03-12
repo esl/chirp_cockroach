@@ -2,9 +2,12 @@ defmodule ChirpCockroach.Chats.Message do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @type t :: %__MODULE__{}
+
   schema "chat_messages" do
     field :text, :string
-    field :kind, Ecto.Enum, values: ~w(text transcription event)a
+    field :file_path, :string
+    field :kind, Ecto.Enum, values: ~w(text voice event image)a
     belongs_to(:user, ChirpCockroach.Accounts.User)
     belongs_to(:room, ChirpCockroach.Chats.Room)
 

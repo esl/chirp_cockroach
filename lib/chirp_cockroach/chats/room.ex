@@ -2,6 +2,8 @@ defmodule ChirpCockroach.Chats.Room do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @type t :: %__MODULE__{}
+
   schema "chat_rooms" do
     field :name, :string
     belongs_to(:user, ChirpCockroach.Accounts.User)

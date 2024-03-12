@@ -24,9 +24,9 @@
             <li><%= @current_user.nickname %></li>
             <li><.link navigate={~p"/users/settings"}>Settings</.link></li>
 
-            <li><.link href={~p"/users/log_out"} method="delete">Sign Out</.link></li>
+            <li><.link href={~p"/users/log_out"} method="delete">Log out</.link></li>
             <% else %>
-            <li><.link navigate={~p"/users/log_in"}>Login</.link></li>
+            <li><.link navigate={~p"/users/log_in"}>Log in</.link></li>
             <li><.link navigate={~p"/users/register"}>Register</.link></li>
             <% end %>
             <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>

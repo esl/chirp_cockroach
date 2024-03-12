@@ -20,7 +20,7 @@ defmodule ChirpCockroachWeb.Endpoint do
     at: "/",
     from: :chirp_cockroach,
     gzip: false,
-    only: ~w(assets fonts images uploads favicon.ico robots.txt),
+    only: ~w(assets fonts images uploads tmp favicon.ico robots.txt),
     headers: %{
       "Cross-Origin-Embedder-Policy" => "require-corp",
       "Cross-Origin-Opener-Policy" => "same-origin"

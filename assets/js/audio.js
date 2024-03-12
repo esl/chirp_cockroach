@@ -1,4 +1,5 @@
 const SAMPLING_RATE = 16_000;
+const MicRecorder = require('mic-recorder-to-mp3');
 
 import {Peer} from "peerjs";
 
@@ -7,16 +8,22 @@ const recordFromPeer = {
         this.mediaRecorder = null;
         this.peer = new Peer();
 
-
-
     }
 }
 
+
+const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
 const Microphone = {
   mounted() {
-    this.mediaRecorder = null;
+    this.recorder = new MicRecorder({
+      bitRate: 128
+    });;
+
+    this.uploadId = this.el.dataset.upload || 'audio';
 
     this.el.addEventListener("mousedown", (event) => {
+        console.log(event)
       this.startRecording();
     });
 
@@ -26,48 +33,32 @@ const Microphone = {
   },
 
   startRecording() {
-    this.audioChunks = [];
-
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      this.mediaRecorder = new MediaRecorder(stream);
-
-      this.mediaRecorder.addEventListener("dataavailable", (event) => {
-        if (event.data.size > 0) {
-          this.audioChunks.push(event.data);
-        }
-      });
-
-      this.mediaRecorder.start(10000);
+    this.recorder.start().then(() => {
+      // something else
+    }).catch((e) => {
+      console.error(e);
     });
   },
 
   stopRecording() {
-    this.mediaRecorder.addEventListener("stop", (event) => {
-      if (this.audioChunks.length === 0) return;
-
-      const audioBlob = new Blob(this.audioChunks);
-
-      audioBlob.arrayBuffer().then((buffer) => {
-        const context = new AudioContext({ sampleRate: SAMPLING_RATE });
-
-        context.decodeAudioData(buffer, (audioBuffer) => {
-          const pcmBuffer = this.audioBufferToPcm(audioBuffer);
-          const buffer = this.convertEndianness32(
-            pcmBuffer,
-            this.getEndianness(),
-            this.el.dataset.endianness
-          );
-          this.upload("audio", [new Blob([buffer])]);
-        });
+    this.recorder
+    .stop()
+    .getMp3().then(([buffer, blob]) => {
+      // do what ever you want with buffer and blob
+      // Example: Create a mp3 file and play
+      const file = new File(buffer, 'file.mp3', {
+        type: blob.type,
+        lastModified: Date.now()
       });
+
+      this.upload(this.uploadId, [blob]);
+     
+    }).catch((e) => {
+      alert('We could not retrieve your message');
+      console.log(e);
     });
+    },
 
-    this.mediaRecorder.stop();
-  },
-
-  isRecording() {
-    return this.mediaRecorder && this.mediaRecorder.state === "recording";
-  },
 
   audioBufferToPcm(audioBuffer) {
     const numChannels = audioBuffer.numberOfChannels;

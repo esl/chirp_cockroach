@@ -9,7 +9,8 @@ defmodule ChirpCockroachWeb.TranscribeLive.TranscribePeer do
      |> allow_upload(:audio, accept: :any, progress: &handle_progress/3, auto_upload: true)}
   end
 
-  def render(assigns) do
+  @impl true
+  def render(_assigns) do
     """
     <div>
       <button id="microphone" data-peer-id={@assigns.peer_id} phx-target={@myself} phx-hook"recordPeer"         data-endianness={System.endianness()}

@@ -9,19 +9,18 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
   def mount(_params, _session, socket) do
     if connected?(socket) do
       Chats.subscribe()
-      Chats.user_subscribe(socket.assigns.current_user)
     end
 
     socket =
       socket
-      |> stream_configure(:rooms, dom_id: &"room-#{&1.id}")
-      |> stream_configure(:messages, dom_id: &"room-#{&1.room_id}-message-#{&1.id}", limit: 10)
+      |> stream_configure(:rooms, dom_id: &"joined-room-#{&1.id}")
+      |> stream_configure(:messages, dom_id: &"room-#{&1.room_id}-message-#{&1.id}")
 
     {:ok,
      socket
-     |> stream(:rooms, Chats.list_user_rooms(socket.assigns.current_user))
+     |> stream(:rooms, Chats.list_user_rooms(socket.assigns.current_user), reset: true)
      |> assign(:all_rooms, [])
-     |> stream(:messages, [], limit: 10)}
+     |> stream(:messages, [])}
   end
 
   @impl true
@@ -51,7 +50,7 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
       socket
       |> assign(:page_title, room.name)
       |> assign(:room, room)
-      |> stream(:messages, Chats.get_room_messages(room), reset: true, limit: 10)
+      |> stream(:messages, Chats.get_room_messages(room), reset: true)
       |> assign(:message_changeset, Chats.Message.changeset(%Chats.Message{}, %{}))
     else
       socket
@@ -60,7 +59,7 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
   end
 
   @impl true
-  def handle_info({:room_created, room}, socket) do
+  def handle_info({:room_created, _room}, socket) do
     # Ignore for now
     {:noreply, socket}
   end
@@ -78,18 +77,18 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
   end
 
   def handle_info(
-        {:new_message_in_room, %{id: room_id} = room, message},
+        {:new_message_in_room, %{id: room_id} = _room, message},
         %{assigns: %{room: %{id: room_id}}} = socket
       ) do
-    {:noreply, socket |> stream_insert(:messages, message, limit: 10)}
+    {:noreply, socket |> stream_insert(:messages, message)}
   end
 
-  def handle_info({:new_message_in_room, room, message}, socket) do
+  def handle_info({:new_message_in_room, _room, _message}, socket) do
     {:noreply, socket}
   end
 
-  def handle_info(undefined_event, socket) do
-    raise undefined_event
+  def handle_info(_undefined_event, socket) do
+    {:noreply, socket}
   end
 
   @impl true

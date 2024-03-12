@@ -8,8 +8,4 @@ defmodule ChirpCockroachWeb.Video.PreviewComponent do
     </video>
     """
   end
-
-  def handle_event(_, %{}, socket) do
-    {:noreply, socket}
-  end
 end
