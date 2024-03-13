@@ -24,13 +24,6 @@ defmodule ChirpCockroachWeb.IrcLive.IrcComponents do
   def irc_messages(%{messages: _, room: _, current_user: _current_user} = assigns) do
     ~H"""
     <div>
-      <div class="chat">
-        <div id="messages-#{@room.id}" class="messages" phx-update="stream">
-          <%= for {id, message} <- @messages do %>
-            <.irc_message id={id} message={message} current_user={@current_user}/>
-          <% end %>
-        </div>
-      </div>
       <.live_component
       module={ChirpCockroachWeb.IrcLive.SendMessageComponent}
       id={:new_message}
@@ -38,6 +31,14 @@ defmodule ChirpCockroachWeb.IrcLive.IrcComponents do
       room={@room}
       message={%ChirpCockroach.Chats.Message{}}
       />
+      <div class="chat">
+        <div id="messages-#{@room.id}" class="messages" phx-update="stream">
+          <%= for {id, message} <- @messages do %>
+            <.irc_message id={id} message={message} current_user={@current_user}/>
+          <% end %>
+        </div>
+      </div>
+
       </div>
     """
   end
@@ -90,16 +91,13 @@ defmodule ChirpCockroachWeb.IrcLive.IrcComponents do
           <span>[<%= format_message_date(@message.inserted_at) %>] </span> <span class="user"><%= @message.user.nickname %></span>
               <br>
                 <audio controls src={Routes.static_path(ChirpCockroachWeb.Endpoint, @message.file_path)}></audio>
+                <%= if @message.audio_transcription do %>
+                <p class="transcription">
+                <span>Transcription:</span> "<%= @message.audio_transcription %>"
+              </p>
+              <% end %>
             </div>
           </div>
-
-          <%= if @message.audio_transcription do %>
-            <div class="message-container message-container-event">
-              <p>
-                <span class="user"><%= @message.user.nickname %></span> said "<%= @message.audio_transcription %>"
-              </p>
-            </div>
-          <% end %>
 
         </div>
 

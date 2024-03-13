@@ -3,14 +3,12 @@ defmodule ChirpCockroachWeb.Video.MicrophoneComponent do
 
   @impl true
   def render(assigns) do
+    content = Map.get(assigns, :content, "Microphone")
+    assigns = Map.put(assigns, :content, content)
     ~H"""
     <button id="microphoneButton" phx-hook="microphone" data-upload={@upload} data-endianness={System.endianness()}>
-      Microphone
+      <%= @content %>
     </button>
     """
-  end
-
-  def handle_event(_, %{}, socket) do
-    {:noreply, socket}
   end
 end

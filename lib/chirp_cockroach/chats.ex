@@ -121,7 +121,7 @@ defmodule ChirpCockroach.Chats do
   end
 
   @spec send_to_room(Accounts.User.t(), Chats.Room.t(), map()) ::
-          {:ok, Chats.Message.t()} | {:error, Ecto.Changeset.t()}
+          {:ok, Chats.Message.t()} | {:error, Ecto.Changeset.t()} | {:error, String.t()}
   def send_to_room(user, room, %{"text" => "/dance" <> _any}) do
     create_event_message(user, room, %{text: "is dancing!"})
   end
@@ -130,8 +130,21 @@ defmodule ChirpCockroach.Chats do
     create_event_message(user, room, %{text: "is singing"})
   end
 
+  def send_to_room(user, room, %{"text" => "/ask " <> question}) do
+    with {:ok, _} <- create_text_message(user, room, %{text: question}),
+         {:ok, answer} <- ChirpCockroach.Ai.answer_question(question) do
+      create_event_message(user, room, %{text: ", \"#{answer}\""})
+    end
+  end
+
   def send_to_room(user, room, %{"text" => "/leave" <> _any}) do
     leave_room(user, room)
+  end
+
+  def send_to_room(user, room, %{"text" => "/gpt " <> text}) do
+    with {:ok, text} <- ChirpCockroach.Ai.gpt_2(text) do
+      create_text_message(user, room, %{text: text})
+    end
   end
 
   def send_to_room(user, room, attrs), do: create_text_message(user, room, attrs)

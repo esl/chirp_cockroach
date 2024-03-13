@@ -119,6 +119,10 @@
   100% { opacity: 0; }
 }
 
+.chat-commands {
+  padding: 1em 0;
+  margin-right: 2em;
+}
 .video-grid {
     display: flex;
     max-width: 80%;
@@ -136,6 +140,7 @@
 
 .message-container-event {
   align-items: center;
+  text-align: center;
   justify-content: center;
 
 }
@@ -188,8 +193,16 @@
     }
   }
 
+  .send-message {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 2px;
+  }
+
   .messages {
     width: 100%;
+    max-height: 600px;
+    overflow: scroll;
+    
   }
   .container {
     flex: 1;

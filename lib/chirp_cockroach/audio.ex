@@ -63,7 +63,7 @@ defmodule ChirpCockroach.Audio do
   end
 
   def blob_to_audio(path, destination) do
-    args = ~w(-vn -ar 44100 -ac 2 -ab 192 -f mp3)
+    args = ~w(-ac 1 -ar 16k -f f32le -v)
     {data, _} = System.cmd("ffmpeg", ["-i", path] ++ args)
   end
 

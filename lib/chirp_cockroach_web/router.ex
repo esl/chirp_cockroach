@@ -4,7 +4,6 @@ defmodule ChirpCockroachWeb.Router do
   import ChirpCockroachWeb.UserAuth
 
   def put_embedder_opener_cors(conn, _) do
-    conn =
       conn
       |> Plug.Conn.put_resp_header("cross-origin-embedder-policy", "require-corp")
       |> Plug.Conn.put_resp_header("cross-origin-opener-policy", "same-origin")

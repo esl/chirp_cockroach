@@ -1,6 +1,14 @@
 <div class="chat">
   <div class="chat-sidebar">
     <.irc_room_list rooms={@streams.rooms} />
+    <pre class="chat-commands">
+      Commands
+
+      /dance
+      /gpt [text]
+      /leave
+      /sing
+    </pre>
   </div>
   <div class="container">
     <%= if @live_action in [:index] do %>

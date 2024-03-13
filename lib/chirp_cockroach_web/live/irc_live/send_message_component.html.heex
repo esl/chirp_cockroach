@@ -2,14 +2,15 @@
     <.form
     :let={f}
     id="room-message"
+    class="send-message"
     for={@changeset}
     phx-target={@myself}
     phx-change="validate"
     phx-submit="save">
         <%= textarea f, :text %>
         <div>
-            <%= submit "Send", phx_disable_with: "Saving..." %>
-            <.live_component id="microphone" module={ChirpCockroachWeb.Video.MicrophoneComponent} upload="audio_file"/>
+            <%= submit "Send", phx_disable_with: "Saving..." %>     
+            <.live_component id="microphone" module={ChirpCockroachWeb.Video.MicrophoneComponent} content="Voice message" upload="audio_file"/>
         </div>
     </.form>
 

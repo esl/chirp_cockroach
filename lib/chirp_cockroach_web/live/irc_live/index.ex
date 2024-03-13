@@ -60,7 +60,7 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
     socket
     |> assign(:page_title, room.name)
     |> assign(:room, room)
-    |> stream(:messages, Chats.get_room_messages(room), reset: true)
+    |> stream(:messages, Enum.reverse(Chats.get_room_messages(room)), reset: true)
     |> assign(:message_changeset, Chats.Message.changeset(%Chats.Message{}, %{}))
   end
 
@@ -89,7 +89,7 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
 
   def handle_info({:new_message_in_room, message}, socket) do
     if active_room?(socket, message) do
-      {:noreply, socket |> stream_insert(:messages, message)}
+      {:noreply, socket |> stream_insert(:messages, message, at: 0)}
     else
       {:noreply, socket}
     end
@@ -111,7 +111,7 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
 
     {:ok, _} = Chats.join_room(socket.assigns.current_user, room)
 
-    {:noreply, socket |> stream_insert(:rooms, room)}
+    socket |> stream_insert(:rooms, room, at: 0) |> noreply()
   end
 
   def handle_event("leave-room", %{"room_id" => room_id}, socket) do
@@ -119,7 +119,7 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
 
     :ok = Chats.leave_room(socket.assigns.current_user, room)
 
-    {:noreply, socket |> stream_delete(:rooms, room) |> push_patch(to: ~p"/irc")}
+    socket |> stream_delete(:rooms, room) |> push_patch(to: ~p"/irc") |> noreply()
   end
 
   defp noreply(socket) do
