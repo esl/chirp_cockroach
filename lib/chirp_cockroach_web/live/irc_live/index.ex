@@ -20,7 +20,7 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
      socket
      |> stream(:rooms, Chats.list_user_rooms(socket.assigns.current_user), reset: true)
      |> assign(:all_rooms, [])
-     |> stream(:messages, [])}
+     |> reset_active_room()}
   end
 
   @impl true
@@ -31,65 +31,79 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "IRC")
-    |> assign(:room, nil)
+    |> reset_active_room()
     |> assign(:all_rooms, Chats.list_chat_rooms())
   end
 
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New Room")
+    |> reset_active_room()
     |> assign(:room, %Chats.Room{})
   end
 
-  defp apply_action(socket, :show, %{"id" => id}) do
-    room = Chats.get_room!(id)
+  defp apply_action(socket, :show, %{"id" => room_id}) do
+    socket.assigns.current_user
+    |> Chats.get_joined_room(room_id)
+    |> case do
+      %Chats.Room{} = room ->
+        set_active_room(socket, room)
 
-    Chats.room_subscribe(room)
-
-    if Enum.any?(room.users, &(&1.id == socket.assigns.current_user.id)) do
-      socket
-      |> assign(:page_title, room.name)
-      |> assign(:room, room)
-      |> stream(:messages, Chats.get_room_messages(room), reset: true)
-      |> assign(:message_changeset, Chats.Message.changeset(%Chats.Message{}, %{}))
-    else
-      socket
-      |> push_patch(to: ~p"/irc")
+      nil ->
+        push_patch(socket, to: ~p"/irc")
     end
   end
 
+  defp set_active_room(socket, room) do
+    Chats.room_subscribe(room)
+
+    socket
+    |> assign(:page_title, room.name)
+    |> assign(:room, room)
+    |> stream(:messages, Chats.get_room_messages(room), reset: true)
+    |> assign(:message_changeset, Chats.Message.changeset(%Chats.Message{}, %{}))
+  end
+
+  defp reset_active_room(socket) do
+    socket
+    |> assign(:room, nil)
+    |> stream(:messages, [], reset: true)
+    |> assign(:message_changeset, Chats.Message.changeset(%Chats.Message{}, %{}))
+  end
+
   @impl true
-  def handle_info({:room_created, _room}, socket) do
-    # Ignore for now
-    {:noreply, socket}
-  end
+  @room_events [:room_created, :room_updated, :room_joined]
 
-  def handle_info({:room_updated, room}, socket) do
-    {:noreply, stream_insert(socket, :rooms, room)}
-  end
-
-  def handle_info({:room_joined, room}, socket) do
-    {:noreply, stream_insert(socket, :rooms, room)}
+  def handle_info({event_type, room}, socket) when event_type in @room_events do
+    socket
+    |> stream_insert(:rooms, room)
+    |> noreply()
   end
 
   def handle_info({:room_left, room}, socket) do
-    {:noreply, stream_delete(socket, :room, room) |> push_patch(to: ~p"/irc")}
+    socket
+    |> stream_delete(:room, room)
+    |> push_patch(to: ~p"/irc")
+    |> noreply()
   end
 
-  def handle_info(
-        {:new_message_in_room, %{id: room_id} = _room, message},
-        %{assigns: %{room: %{id: room_id}}} = socket
-      ) do
-    {:noreply, socket |> stream_insert(:messages, message)}
+  def handle_info({:new_message_in_room, message}, socket) do
+    if active_room?(socket, message) do
+      {:noreply, socket |> stream_insert(:messages, message)}
+    else
+      {:noreply, socket}
+    end
   end
 
-  def handle_info({:new_message_in_room, _room, _message}, socket) do
-    {:noreply, socket}
+  def handle_info(_socket, event) do
+    raise event
   end
 
-  def handle_info(_undefined_event, socket) do
-    {:noreply, socket}
+  defp active_room?(%{assigns: %{room: %{id: room_id}}}, %{room_id: room_id}) do
+    true
   end
+
+  defp active_room?(_socket, _event), do: false
 
   @impl true
   def handle_event("join-room", %{"room_id" => room_id}, socket) do
@@ -103,8 +117,12 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
   def handle_event("leave-room", %{"room_id" => room_id}, socket) do
     room = Chats.get_room!(room_id)
 
-    {:ok, _} = Chats.leave_room(socket.assigns.current_user, room)
+    :ok = Chats.leave_room(socket.assigns.current_user, room)
 
     {:noreply, socket |> stream_delete(:rooms, room) |> push_patch(to: ~p"/irc")}
+  end
+
+  defp noreply(socket) do
+    {:noreply, socket}
   end
 end

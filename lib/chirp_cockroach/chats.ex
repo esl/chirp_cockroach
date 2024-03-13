@@ -22,10 +22,8 @@ defmodule ChirpCockroach.Chats do
 
   @spec list_user_rooms(Accounts.User.t()) :: list(Chats.Room.t())
   def list_user_rooms(%{id: user_id}) do
-    room_ids = Chats.Participant |> where(user_id: ^user_id) |> select([:room_id])
-
     Chats.Room
-    |> where([room], room.id in subquery(room_ids))
+    |> by_user_joined([user_id])
     |> Repo.all()
     |> Repo.preload([:users])
   end
@@ -34,6 +32,23 @@ defmodule ChirpCockroach.Chats do
     Chats.Room
     |> Repo.get!(id)
     |> Repo.preload([:user, :users])
+  end
+
+  @spec get_joined_room(Accounts.User.t(), integer()) :: Chats.Room.t() | nil
+  def get_joined_room(%{id: user_id}, room_id) do
+    Chats.Room
+    |> by_user_joined([user_id])
+    |> Repo.get(room_id)
+    |> Repo.preload([:users])
+  end
+
+  defp by_user_joined(query, user_ids) do
+    room_ids =
+      Chats.Participant
+      |> where([participant], participant.user_id in ^user_ids)
+      |> select([:room_id])
+
+    where(query, [room], room.id in subquery(room_ids))
   end
 
   @doc """
@@ -66,23 +81,25 @@ defmodule ChirpCockroach.Chats do
   @doc """
   User joins a room.
   """
-  @spec join_room(Accounts.User.t(), Chats.Room.t()) :: {:ok, Chats.Participant.t()} | {:error, :already_joined | Ecto.Changeset.t()}
+  @spec join_room(Accounts.User.t(), Chats.Room.t()) ::
+          {:ok, Chats.Participant.t()} | {:error, :already_joined | Ecto.Changeset.t()}
   def join_room(user, room) do
     with nil <- get_participant(user, room),
          {:ok, participant} <- create_participant(user, room) do
       Chats.EventHandler.handle(%Chats.Events.RoomJoinedByUser{room: room, user: user})
 
       {:ok, participant}
-         else
-          %Chats.Participant{} -> {:error, :already_joined}
-          {:error, _} = error -> error
+    else
+      %Chats.Participant{} -> {:error, :already_joined}
+      {:error, _} = error -> error
     end
   end
 
   @doc """
   User leaves a room.
   """
-  @spec leave_room(Accounts.User.t(), Chats.Room.t()) :: :ok | {:error, :participant_not_found | Ecto.Changeset.t()}
+  @spec leave_room(Accounts.User.t(), Chats.Room.t()) ::
+          :ok | {:error, :participant_not_found | Ecto.Changeset.t()}
   def leave_room(user, room) do
     with %{} = participant <- get_participant(user, room),
          {:ok, _} <- Repo.delete(participant) do
@@ -103,8 +120,8 @@ defmodule ChirpCockroach.Chats do
     |> Repo.insert()
   end
 
-
-  @spec send_to_room(Accounts.User.t(), Chats.Room.t(), map()) :: {:ok, Chats.Message.t()}
+  @spec send_to_room(Accounts.User.t(), Chats.Room.t(), map()) ::
+          {:ok, Chats.Message.t()} | {:error, Ecto.Changeset.t()}
   def send_to_room(user, room, %{"text" => "/dance" <> _any}) do
     create_event_message(user, room, %{text: "is dancing!"})
   end
@@ -119,8 +136,7 @@ defmodule ChirpCockroach.Chats do
 
   def send_to_room(user, room, attrs), do: create_text_message(user, room, attrs)
 
-
-  defp create_text_message(user, room, attrs \\ %{}) do
+  defp create_text_message(user, room, attrs) do
     %Chats.Message{user_id: user.id, room_id: room.id, kind: :text}
     |> Chats.Message.changeset(attrs)
     |> Repo.insert()
@@ -166,24 +182,22 @@ defmodule ChirpCockroach.Chats do
   end
 
   def transcribe_voice_message!(message) do
-    Task.async(fn ->
-      message.file_path
-      |> ChirpCockroach.Files.file_source()
-      |> ChirpCockroach.Audio.transcribe()
-      |> case do
-        {:ok, %{transcription: transcription}} ->
-          message =
-            message
-            |> Chats.Message.changeset(%{text: "said \"#{transcription}\""})
-            |> Repo.update!()
-            |> Repo.preload(:room)
+    message.file_path
+    |> ChirpCockroach.Files.file_source()
+    |> ChirpCockroach.Audio.transcribe()
+    |> case do
+      {:ok, %{transcription: transcription}} ->
+        message =
+          message
+          |> Chats.Message.transcription_changeset(%{audio_transcription: transcription})
+          |> Repo.update!()
+          |> Repo.preload(:room)
 
-          Chats.EventHandler.handle(%Chats.Events.NewMessageInRoom{
-            room: message.room,
-            message: message
-          })
-      end
-    end)
+        Chats.EventHandler.handle(%Chats.Events.NewMessageInRoom{
+          room: message.room,
+          message: message
+        })
+    end
   end
 
   def create_transcription_message(user, room, attrs \\ %{}) do
@@ -260,7 +274,11 @@ defmodule ChirpCockroach.Chats do
     Phoenix.PubSub.subscribe(ChirpCockroach.PubSub, "chats:room:#{room.id}")
   end
 
-  def room_broadcast(%{id: room_id}, event) do
+  def room_broadcast(%{room_id: room_id}, event) do
+    Phoenix.PubSub.broadcast(ChirpCockroach.PubSub, "chats:room:#{room_id}", event)
+  end
+
+  def room_broadcast(%Chats.Room{id: room_id}, event) do
     Phoenix.PubSub.broadcast(ChirpCockroach.PubSub, "chats:room:#{room_id}", event)
   end
 end

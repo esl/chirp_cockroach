@@ -37,24 +37,20 @@ defmodule ChirpCockroach.ChatsTest do
   end
 
   describe "list_user_rooms/1" do
-
   end
 
   describe "get_room!/1" do
-
   end
 
   describe "create_room/2" do
   end
 
   describe "join_room/2" do
-
   end
 
   describe "leave_room/2" do
   end
 
   describe "send_to_room/3" do
-
   end
 end

@@ -42,8 +42,6 @@ defmodule ChirpCockroachWeb.Video.TranscriptionComponent do
         {:ok, File.read!(path)}
       end)
 
-
-
     audio = Nx.from_binary(binary, :f32)
 
     socket =

@@ -30,8 +30,8 @@ defmodule ChirpCockroachWeb.ConnCase do
       @endpoint ChirpCockroachWeb.Endpoint
 
       use Phoenix.VerifiedRoutes,
-  endpoint: ChirpCockroachWeb.Endpoint,
-  router: ChirpCockroachWeb.Router
+        endpoint: ChirpCockroachWeb.Endpoint,
+        router: ChirpCockroachWeb.Router
     end
   end
 

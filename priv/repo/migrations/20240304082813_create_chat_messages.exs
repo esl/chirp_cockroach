@@ -3,11 +3,14 @@ defmodule ChirpCockroach.Repo.Migrations.CreateChatMessages do
 
   def change do
     create table(:chat_messages) do
-      add :text, :string
+      add :text, :text
+
       add :file_path, :string
       add :user_id, references(:users, on_delete: :nothing)
       add :room_id, references(:chat_rooms, on_delete: :nothing)
       add :kind, :string
+
+      add :audio_transcription, :text
 
       timestamps()
     end

@@ -8,35 +8,24 @@ defmodule ChirpCockroach.Chats.EventHandler do
     :ok
   end
 
-  def handle(%Chats.Events.RoomJoinedByUser{room: room, user: user} = event) do
+  def handle(%Chats.Events.RoomJoinedByUser{room: room, user: user}) do
     room = Repo.preload(room, :users)
 
     Chats.create_event_message(user, room, %{text: "joined a room"})
-
     :ok
   end
 
-  def handle(%Chats.Events.RoomLeftByUser{room: room, user: user} = event) do
+  def handle(%Chats.Events.RoomLeftByUser{room: room, user: user}) do
     room = Repo.preload(room, :users)
 
     Chats.create_event_message(user, room, %{text: "left a room"})
-
-    Enum.each(room.users, fn user ->
-      Chats.user_broadcast(user, {:room_updated, room})
-    end)
+    Chats.room_broadcast(room, {:room_updated, room})
 
     :ok
   end
 
-  def handle(%Chats.Events.NewMessageInRoom{room: room, message: message}) do
-    room = Repo.preload(room, :users)
-    message = Repo.preload(message, :user)
-
-    Chats.room_broadcast(room, {:new_message_in_room, room, message})
-
-    Enum.each(room.users, fn user ->
-      Chats.user_broadcast(user, {:new_message_in_room, room, message})
-    end)
+  def handle(%Chats.Events.NewMessageInRoom{message: message}) do
+    Chats.room_broadcast(message, {:new_message_in_room, Repo.preload(message, :user)})
 
     :ok
   end

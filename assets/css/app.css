@@ -124,17 +124,37 @@
     max-width: 80%;
 }
 
+.message-container {
+  width: 100%;
+  display: flex;
+}
+
+.message-container-other-user {
+  justify-content: right;
+  flex-direction: flex-end;
+}
+
+.message-container-event {
+  align-items: center;
+  justify-content: center;
+
+}
 
 .message {
   margin: 3px;
+  display: inline-block;
 }
 
-.me {
-  background-color: rgba(65, 166, 186, 0.534);
+.message-me {
+  background-color: lightpink;
+  color: white;
+}
+
+.message-other-user {
+  background-color: #f0f0f0;
 }
 
 .bubble {
-  background-color: #f0f0f0;
   border-radius: 11px;
   padding: 5px;
 }
@@ -142,12 +162,17 @@
 .user {
   color: #2980b9;
 }
+.chat-sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
 .chat {
   min-width: 620px;
   min-height: 300px;
   display: flex;
   flex-direction: row;
-  ul.list {
+  .list {
     width: 150px;
     padding: 3px 0;
     li {
@@ -161,6 +186,10 @@
         float: right;
       }
     }
+  }
+
+  .messages {
+    width: 100%;
   }
   .container {
     flex: 1;

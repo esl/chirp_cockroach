@@ -23,22 +23,22 @@ defmodule ChirpCockroachWeb.IrcLive.IrcComponents do
 
   def irc_messages(%{messages: _, room: _, current_user: _current_user} = assigns) do
     ~H"""
-    <div class="container">
-    <div class="chat">
-      <div id="messages-#{@room.id}" class="messages" phx-update="stream">
-        <%= for {id, message} <- @messages do %>
-          <.irc_message id={id} message={message} current_user={@current_user}/>
-        <% end %>
+    <div>
+      <div class="chat">
+        <div id="messages-#{@room.id}" class="messages" phx-update="stream">
+          <%= for {id, message} <- @messages do %>
+            <.irc_message id={id} message={message} current_user={@current_user}/>
+          <% end %>
+        </div>
       </div>
-    </div>
-    <.live_component
-    module={ChirpCockroachWeb.IrcLive.SendMessageComponent}
-    id={:new_message}
-    current_user={@current_user}
-    room={@room}
-    message={%ChirpCockroach.Chats.Message{}}
-    />
-    </div>
+      <.live_component
+      module={ChirpCockroachWeb.IrcLive.SendMessageComponent}
+      id={:new_message}
+      current_user={@current_user}
+      room={@room}
+      message={%ChirpCockroach.Chats.Message{}}
+      />
+      </div>
     """
   end
 
@@ -53,38 +53,62 @@ defmodule ChirpCockroachWeb.IrcLive.IrcComponents do
   end
 
   def irc_message(%{id: _, message: _} = assigns) do
-    assigns = Map.put(assigns, :class, irc_message_class(assigns))
+    assigns =
+      assigns
+      |> Map.put(:message_class, irc_message_class(assigns))
+      |> Map.put(:message_container_class, irc_message_container_class(assigns))
 
     case assigns.message.kind do
       :text ->
         ~H"""
-        <div id={@id} class={"#{@class} bubble"}>
-          <span>[<%= format_message_date(@message.inserted_at) %>] </span> <span class="user"><%= @message.user.nickname %></span>
-          <br>
-          <span class="bubble"><%= @message.text %></span>
+        <div id={@id} class={@message_container_class}>
+          <div class={"#{@message_class} bubble"}>
+            <span class="user"><%= @message.user.nickname %></span><span>(<%= format_message_date(@message.inserted_at) %>)</span>
+
+            <br>
+            <span><%= @message.text %></span>
+          </div>
         </div>
         """
 
       :event ->
         ~H"""
-        <div id={@id} class={@class}>
-        <span>[<%= format_message_date(@message.inserted_at) %>] </span><span class="user"><%= @message.user.nickname %> </span> <span><%= @message.text %></span>
+        <div id={@id} class={@message_container_class}>
+          <p>
+            <%= format_message_date(@message.inserted_at) %>
+            <br>
+            <span class="user"><%= @message.user.nickname %> </span> <%= @message.text %>
+          </p>
         </div>
         """
 
       :voice ->
         ~H"""
-        <div id={@id} class={"#{@class} bubble"}>
-        <span>[<%= format_message_date(@message.inserted_at) %>] </span><span class="user"><%= @message.user.nickname %></span>
-        <br>
-          <audio controls src={Routes.static_path(ChirpCockroachWeb.Endpoint, @message.file_path)}></audio>
-          <pre><%= @message.text %></pre>
+        <div id={@id}>
+          <div class={@message_container_class}>
+          <div class={"#{@message_class} bubble"}>
+          <span>[<%= format_message_date(@message.inserted_at) %>] </span> <span class="user"><%= @message.user.nickname %></span>
+              <br>
+                <audio controls src={Routes.static_path(ChirpCockroachWeb.Endpoint, @message.file_path)}></audio>
+            </div>
+          </div>
+
+          <%= if @message.audio_transcription do %>
+            <div class="message-container message-container-event">
+              <p>
+                <span class="user"><%= @message.user.nickname %></span> said "<%= @message.audio_transcription %>"
+              </p>
+            </div>
+          <% end %>
+
         </div>
+
+
         """
 
       :image ->
         ~H"""
-        <div id={@id} class={"#{@class} bubble"}>
+        <div id={@id} class={@message_container_class}>
         <span>[<%= format_message_date(@message.inserted_at) %>] </span><span class="user"><%= @message.user.nickname %></span><span> <%= @message.text || "said something..." %></span>
         <br>
           <audio controls src={Routes.static_path(ChirpCockroachWeb.Endpoint, @message.file_path)}></audio>
@@ -94,11 +118,31 @@ defmodule ChirpCockroachWeb.IrcLive.IrcComponents do
     end
   end
 
-  def irc_message_class(%{message: %{user_id: user_id}, current_user: %{id: user_id}}) do
-    "message me"
+  def irc_message_class(assigns) do
+    if own_message?(assigns) do
+      "message message-me"
+    else
+      "message message-other-user"
+    end
   end
 
-  def irc_message_class(_), do: "message"
+  def irc_message_container_class(%{message: %{kind: :event}}) do
+    "message-container message-container-event"
+  end
+
+  def irc_message_container_class(assigns) do
+    if own_message?(assigns) do
+      "message-container message-container-me"
+    else
+      "message-container message-container-other-user"
+    end
+  end
+
+  defp own_message?(%{message: %{user_id: user_id}, current_user: %{id: user_id}}) do
+    true
+  end
+
+  defp own_message?(_), do: false
 
   def format_message_date(date) do
     Calendar.strftime(date, "%d.%m.%Y %H:%M:%S")

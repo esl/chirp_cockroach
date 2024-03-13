@@ -6,6 +6,7 @@ defmodule ChirpCockroach.Chats.Message do
 
   schema "chat_messages" do
     field :text, :string
+    field :audio_transcription, :string
     field :file_path, :string
     field :kind, Ecto.Enum, values: ~w(text voice event image)a
     belongs_to(:user, ChirpCockroach.Accounts.User)
@@ -19,5 +20,9 @@ defmodule ChirpCockroach.Chats.Message do
     message
     |> cast(attrs, [:text])
     |> validate_required([:text, :kind])
+  end
+
+  def transcription_changeset(message, attrs) do
+    cast(message, attrs, [:audio_transcription])
   end
 end
