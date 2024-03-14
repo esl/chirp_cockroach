@@ -14,13 +14,14 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
     socket =
       socket
       |> stream_configure(:rooms, dom_id: &"joined-room-#{&1.id}")
+      |> stream_configure(:available_rooms, dom_id: &"available-room-#{&1.id}")
       |> stream_configure(:messages, dom_id: &"room-#{&1.room_id}-message-#{&1.id}")
       |> stream_configure(:video_streams, dom_id: &"video-stream-#{&1.peer_id}")
 
     {:ok,
      socket
      |> stream(:rooms, Chats.list_user_rooms(socket.assigns.current_user), reset: true)
-     |> assign(:all_rooms, [])
+     |> stream(:available_rooms, [], reset: true)
      |> reset_active_room()}
   end
 
@@ -33,7 +34,7 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
     socket
     |> assign(:page_title, "IRC")
     |> reset_active_room()
-    |> assign(:all_rooms, Chats.list_chat_rooms())
+    |> stream(:available_rooms, Chats.list_available_rooms(socket.assigns.current_user), reset: true)
   end
 
   defp apply_action(socket, :new, _params) do
@@ -84,17 +85,19 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
   def handle_info({event_type, room}, socket) when event_type in @room_events do
     socket
     |> stream_insert(:rooms, room)
+    |> stream_delete(:available_rooms, room)
     |> noreply()
   end
 
   def handle_info({:room_left, room}, socket) do
     socket
-    |> stream_delete(:room, room)
+    |> stream_delete(:rooms, room)
+    |> stream_insert(:available_rooms, room)
     |> push_patch(to: ~p"/irc")
     |> noreply()
   end
 
-  def handle_info({:new_message_in_room, message}, socket) do
+  def handle_info({:message_created, message}, socket) do
     if active_room?(socket, message) do
       {:noreply, socket |> stream_insert(:messages, message, at: 0)}
     else

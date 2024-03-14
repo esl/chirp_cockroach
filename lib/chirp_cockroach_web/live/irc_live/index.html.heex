@@ -13,8 +13,8 @@
   <div class="container">
     <%= if @live_action in [:index] do %>
     <ul id="browserooms" phx-update="stream">
-      <%= for room <- @all_rooms do %>
-        <li id="room-{id}">
+      <%= for {id, room} <- @streams.available_rooms do %>
+        <li id={id}>
           <%= room.name %> <span><a phx-click="join-room" phx-value-room_id={room.id}>Join</a></span>
         </li>
       <% end %>
@@ -36,14 +36,25 @@
     <% end %>
 
     <%= if @room && @room.id do %>
-      <.video_call id={"video-#{@room.id}"} join_event="start-stream" media_streams={@streams.video_streams} transcription="transcription" current_user={@current_user} />
-      <.irc_messages id="room-messages" room={@room} messages={@streams.messages} current_user={@current_user} />
+      <.video_call 
+        id={"video-#{@room.id}"} 
+        join_event="start-stream" 
+        media_streams={@streams.video_streams} 
+        transcription="transcription" 
+        current_user={@current_user} 
+      />
+      <.irc_messages 
+        id="room-messages" 
+        room={@room} 
+        messages={@streams.messages} 
+        current_user={@current_user} 
+      />
     <% end %>
 
   </div>
   <div class="chat-sidebar">
     <%= if @room && @room.id do %>
-    <.irc_participants users={@room.users} current_user={@current_user} />
-  <% end %>
+      <.irc_participants users={@room.users} current_user={@current_user} />
+    <% end %>
   </div>
 </div>

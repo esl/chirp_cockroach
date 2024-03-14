@@ -9,14 +9,14 @@ defmodule ChirpCockroach.Chats.EventHandler do
   end
 
   def handle(%Chats.Events.RoomJoinedByUser{room: room, user: user}) do
-    room = Repo.preload(room, :users)
+    room = Repo.preload(room, :users, force: true)
 
     Chats.create_event_message(user, room, %{text: "joined a room"})
     :ok
   end
 
   def handle(%Chats.Events.RoomLeftByUser{room: room, user: user}) do
-    room = Repo.preload(room, :users)
+    room = Repo.preload(room, :users, force: true)
 
     Chats.create_event_message(user, room, %{text: "left a room"})
     Chats.room_broadcast(room, {:room_updated, room})
@@ -25,7 +25,7 @@ defmodule ChirpCockroach.Chats.EventHandler do
   end
 
   def handle(%Chats.Events.NewMessageInRoom{message: message}) do
-    Chats.room_broadcast(message, {:new_message_in_room, Repo.preload(message, :user)})
+    Chats.room_broadcast(message, {:message_created, Repo.preload(message, :user)})
 
     :ok
   end

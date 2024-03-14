@@ -28,6 +28,14 @@ defmodule ChirpCockroach.Chats do
     |> Repo.preload([:users])
   end
 
+  @spec list_available_rooms(Accounts.User.t()) :: list(Chats.Room.t())
+  def list_available_rooms(user) do
+    Chats.Room
+    |> by_user_not_joined([user.id])
+    |> Repo.all()
+    |> Repo.preload([:users])
+  end
+
   def get_room!(id) do
     Chats.Room
     |> Repo.get!(id)
@@ -49,6 +57,15 @@ defmodule ChirpCockroach.Chats do
       |> select([:room_id])
 
     where(query, [room], room.id in subquery(room_ids))
+  end
+
+  defp by_user_not_joined(query, user_ids) do
+    room_ids =
+      Chats.Participant
+      |> where([participant], participant.user_id in ^user_ids)
+      |> select([:room_id])
+
+    where(query, [room], not room.id in subquery(room_ids))
   end
 
   @doc """
