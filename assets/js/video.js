@@ -1,4 +1,5 @@
 import {Peer} from "peerjs"
+const MicRecorder = require('mic-recorder-to-mp3');
 
 const SAMPLING_RATE = 16_000;
 
@@ -48,7 +49,7 @@ const addTrack = (type, track) => {
         if (call.peerConnection) {
             call.peerConnection.getSenders().forEach((sender) => {
                 if (sender.track && sender.track.kind === type) {
-                    sender.track.replaceTrack(track);
+                    sender.replaceTrack(track);
                     sender.track.enabled = true;
                 }
             })
@@ -69,7 +70,97 @@ const disableTrack = (type) => {
 }
 
 
-previewHook = {
+const MicrophoneControl = {
+    initialize() {
+      if (!this.controlStream || window.stream) {
+        this.el.addEventListener("mousedown", (event) => {
+          this.enable();
+        });
+  
+        this.el.addEventListener("mouseup", (event) => {
+          this.disable();
+        });
+      } else {
+        new Promise((_resolve) => {
+          setTimeout(() => {
+              this.initialize()
+          }, 1000);
+      })
+      }
+    },
+    mounted() {
+        this.recorder = new MicRecorder({
+            bitRate: 128
+        });
+
+        this.uploadId = this.el.dataset.upload === "false" ? false : this.el.dataset.upload;
+        console.log(this.el.dataset);
+        this.controlStream = this.el.dataset.control_stream || false;
+        console.log(this.controlStream);
+
+        this.initialize();
+    },
+  
+    enable() {
+        if (this.uploadId) { this.startRecording() };
+        if (this.controlStream) {  this.startStream() };
+        this.el.classList.add("button-active");
+    },
+  
+    disable() {
+        if (this.controlStream) { this.stopStream() };
+        if (this.uploadId) { this.stopRecording() };
+        this.el.classList.remove("button-active");
+    },
+
+    startStream() {
+        if (getUserMedia) {
+            getUserMedia(
+                { audio: true, video: false },
+                (stream) => {
+                    this.track = stream.getAudioTracks()[0];
+                    window.stream.getAudioTracks()[0].enabled = true;
+                    console.log("adding tracks")
+                    addTrack('audio', this.track);
+                },
+                (err) => {
+                    console.error(`The following error occurred: ${err.name}`);
+                },
+            );
+        } else {
+            console.error("getUserMedia not supported");
+        }
+    },
+
+    stopStream() {
+        if (window.stream.getAudioTracks()[0] && window.stream.getAudioTracks()[0].enabled) {
+            window.stream.getAudioTracks()[0].enabled = false;
+            disableTrack('audio');
+    
+          }
+    },
+  
+    startRecording() {
+        this.recorder.start().then(() => {
+        }).catch((e) => {
+          console.error(e);
+        });
+    },
+  
+    stopRecording() {
+  
+      this.recorder
+      .stop()
+      .getMp3().then(([_buffer, blob]) => {
+        this.upload(this.uploadId, [blob]);
+       
+      }).catch((e) => {
+        alert('We could not retrieve your message');
+      });
+    }
+  };
+
+const VideoPreview = {
     initialize() {
         if (window.previewStream) {
             addVideoStream(this.el, window.previewStream);
@@ -86,9 +177,9 @@ previewHook = {
     }
 }
 
-cameraHook = {
+const CameraControl = {
     mounted() {
-        this.track = null;
+        this.enabled = false;
 
         this.el.addEventListener("click", (event) => {
             if(this.track === null) {
@@ -109,6 +200,8 @@ cameraHook = {
                     window.stream.getVideoTracks()[0].enabled = true;
                     window.previewStream.getVideoTracks()[0].enabled = true;
                     addTrack('video', this.track);
+                    this.enabled = true;
+                    this.el.classList.add("button-active");
 
                 },
                 (err) => {
@@ -121,72 +214,28 @@ cameraHook = {
     },
 
     disableCamera() {
-        if (window.stream.getVideoTracks()[0] && window.stream.getVideoTracks[0].enabled) {
+        if (window.stream.getVideoTracks()[0] && window.stream.getVideoTracks()[0].enabled) {
             window.stream.getVideoTracks()[0].enabled = false;
             disableTrack('video');
-            this.track = null;
+            this.enabled = false;
+            this.el.classList.remove("button-active");
+
         }
     }
 }
 
-microphoneHook = {
-    mounted() {
-        this.track = null;
-
-        this.el.addEventListener("click", (event) => {
-            if(this.track === null) {
-                this.enableMicrophone();
-            } else {
-                this.disableMicrophone();
-            }
-        })
-
-    },
-
-    enableMicrophone() {
-        if (getUserMedia) {
-            getUserMedia(
-                { audio: true, video: false },
-                (stream) => {
-                    this.track = stream.getAudioTracks()[0];
-                    window.stream.getAudioTracks()[0].enabled = true;
-                    addTrack('audio', this.track);
-                },
-                (err) => {
-                    console.error(`The following error occurred: ${err.name}`);
-                },
-            );
-        } else {
-            console.error("getUserMedia not supported");
-        }
-    },
-
-    disableMicrophone() {
-        if (window.stream.getAudioTracks()[0] && window.stream.getAudioTracks()[0].enabled) {
-            window.stream.getAudioTracks()[0].enabled = false;
-            disableTrack('audio');
-            this.track = null;
-        }
-    }
-}
-
-peerStreamHook = {
+const PeerStream = {
     initialize() {
         if (window.stream) {
             this.call = window.peer.call(this.peer_id, window.stream);
 
             window.calls.push(this.call);
-    
-            console.log("calling")
-            console.log(this.call)
-    
+        
             this.call.on('error', error => {
-                console.log("error")
                 console.log(error)
             })
     
             this.call.on('close', error => {
-                console.log("close")
                 console.log(error)
             })
     
@@ -215,9 +264,8 @@ peerStreamHook = {
 
 
 export const VideoHooks = {
-    cameraControl: cameraHook,
-    microphoneControl: microphoneHook,
-    previewVideo: previewHook,
+    cameraControl: CameraControl,
+    previewVideo: VideoPreview,
     setPeerId: {
         mounted() {
             this.pushEvent("set-peer-id", {peer_id: peer.id})
@@ -225,5 +273,9 @@ export const VideoHooks = {
             this.el.disabled = false;
         }
     },
-    peerVideo: peerStreamHook
+    peerVideo: PeerStream
 }
+
+export const MicrophoneHooks = {
+    microphoneControl: MicrophoneControl,
+};

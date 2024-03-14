@@ -36,8 +36,7 @@
     <% end %>
 
     <%= if @room && @room.id do %>
-      <button id="start-stream" phx-click="start-stream" phx-hook="setPeerId">Start Stream</button>
-      <.video_call id={"video-#{@room.id}"} media_streams={@streams.video_streams} current_user={@current_user} />
+      <.video_call id={"video-#{@room.id}"} join_event="start-stream" media_streams={@streams.video_streams} current_user={@current_user} />
       <.irc_messages id="room-messages" room={@room} messages={@streams.messages} current_user={@current_user} />
     <% end %>
 

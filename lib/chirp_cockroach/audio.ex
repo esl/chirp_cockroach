@@ -62,11 +62,6 @@ defmodule ChirpCockroach.Audio do
     {timestamp, Nx.from_binary(data, :f32)}
   end
 
-  def blob_to_audio(path, destination) do
-    args = ~w(-ac 1 -ar 16k -f f32le -v)
-    {data, _} = System.cmd("ffmpeg", ["-i", path] ++ args)
-  end
-
   @doc """
   Returns audio duration of file under given path rounded up to integer
   """
