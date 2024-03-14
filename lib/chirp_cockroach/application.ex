@@ -47,7 +47,7 @@ defmodule ChirpCockroach.Application do
       ChirpCockroachWeb.Endpoint,
       # Start a worker by calling: ChirpCockroach.Worker.start_link(arg)
       # {ChirpCockroach.Worker, arg},
-      # TODO(rafalskorupa): Add supervisor
+      # TODO(rafalskorupa): Add supervisors
       ChirpCockroach.Audio.Whisper,
       {Nx.Serving,
        serving: whisper_serving(), name: ChirpCockroach.Serving.Whisper, batch_timeout: 100},

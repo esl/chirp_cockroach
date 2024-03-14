@@ -1,5 +1,6 @@
 defmodule ChirpCockroachWeb.IrcLive.IrcComponents do
   use ChirpCockroachWeb, :component
+  import ChirpCockroachWeb.MultimediaComponents
 
   def irc_room_list(%{rooms: _} = assigns) do
     ~H"""
@@ -48,6 +49,12 @@ defmodule ChirpCockroachWeb.IrcLive.IrcComponents do
       <ul class="users">
       <%= for user <- @users do %>
         <li><i class="fa fa-circle state-online"></i><%= user.nickname %></li>
+        <%= if user.id == @current_user.id do %>
+          <.camera_button id="camera">C</.camera_button>
+          <.microphone_button id="stream-microphone" upload_id="stream">M</.microphone_button>
+
+          <.multimedia_preview id={"stream-preview-#{user.id}"} />
+        <% end %>
       <% end %>
     </ul>
     """

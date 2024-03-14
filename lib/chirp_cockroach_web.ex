@@ -23,9 +23,6 @@ defmodule ChirpCockroachWeb do
     endpoint: ChirpCockroachWeb.Endpoint,
     router: ChirpCockroachWeb.Router
 
-  @spec controller() ::
-          {:__block__, [],
-           [{:alias, [...], [...]} | {:import, [...], [...]} | {:use, [...], [...]}, ...]}
   def controller do
     quote do
       use Phoenix.Controller, namespace: ChirpCockroachWeb

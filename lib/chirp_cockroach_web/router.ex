@@ -4,9 +4,9 @@ defmodule ChirpCockroachWeb.Router do
   import ChirpCockroachWeb.UserAuth
 
   def put_embedder_opener_cors(conn, _) do
-      conn
-      |> Plug.Conn.put_resp_header("cross-origin-embedder-policy", "require-corp")
-      |> Plug.Conn.put_resp_header("cross-origin-opener-policy", "same-origin")
+    conn
+    |> Plug.Conn.put_resp_header("cross-origin-embedder-policy", "require-corp")
+    |> Plug.Conn.put_resp_header("cross-origin-opener-policy", "same-origin")
   end
 
   pipeline :browser do
@@ -31,9 +31,6 @@ defmodule ChirpCockroachWeb.Router do
     live("/posts/new", PostLive.Index, :new)
     live("/posts/:id/edit", PostLive.Index, :edit)
     get("/", PageController, :index)
-
-    live "/transcribe/file", TranscribeLive.Upload, :index
-    live "/transcribe/microphone", TranscribeLive.Microphone, :index
   end
 
   # Other scopes may use custom stacks.

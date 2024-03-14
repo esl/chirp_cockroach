@@ -69,7 +69,7 @@ defmodule ChirpCockroach.Chats do
     |> Repo.insert()
     |> case do
       {:ok, room} ->
-        Chats.EventHandler.handle(%Chats.Events.RoomCreated{room: room})
+        ChirpCockroach.Events.publish(%Chats.Events.RoomCreated{room: room})
 
         {:ok, room}
 
@@ -86,7 +86,7 @@ defmodule ChirpCockroach.Chats do
   def join_room(user, room) do
     with nil <- get_participant(user, room),
          {:ok, participant} <- create_participant(user, room) do
-      Chats.EventHandler.handle(%Chats.Events.RoomJoinedByUser{room: room, user: user})
+      ChirpCockroach.Events.publish(%Chats.Events.RoomJoinedByUser{room: room, user: user})
 
       {:ok, participant}
     else
@@ -103,7 +103,7 @@ defmodule ChirpCockroach.Chats do
   def leave_room(user, room) do
     with %{} = participant <- get_participant(user, room),
          {:ok, _} <- Repo.delete(participant) do
-      Chats.EventHandler.handle(%Chats.Events.RoomLeftByUser{room: room, user: user})
+      ChirpCockroach.Events.publish(%Chats.Events.RoomLeftByUser{room: room, user: user})
       :ok
     else
       nil -> {:error, :participant_not_found}
@@ -155,7 +155,7 @@ defmodule ChirpCockroach.Chats do
     |> Repo.insert()
     |> case do
       {:ok, message} = result ->
-        Chats.EventHandler.handle(%Chats.Events.NewMessageInRoom{room: room, message: message})
+        ChirpCockroach.Events.publish(%Chats.Events.NewMessageInRoom{room: room, message: message})
 
         result
 
@@ -169,7 +169,7 @@ defmodule ChirpCockroach.Chats do
     |> Repo.insert()
     |> case do
       {:ok, message} = result ->
-        Chats.EventHandler.handle(%Chats.Events.NewMessageInRoom{room: room, message: message})
+        ChirpCockroach.Events.publish(%Chats.Events.NewMessageInRoom{room: room, message: message})
         transcribe_voice_message!(message)
 
         result
@@ -185,7 +185,7 @@ defmodule ChirpCockroach.Chats do
     |> Repo.insert()
     |> case do
       {:ok, message} = result ->
-        Chats.EventHandler.handle(%Chats.Events.NewMessageInRoom{room: room, message: message})
+        ChirpCockroach.Events.publish(%Chats.Events.NewMessageInRoom{room: room, message: message})
 
         result
 
@@ -206,7 +206,7 @@ defmodule ChirpCockroach.Chats do
           |> Repo.update!()
           |> Repo.preload(:room)
 
-        Chats.EventHandler.handle(%Chats.Events.NewMessageInRoom{
+        ChirpCockroach.Events.publish(%Chats.Events.NewMessageInRoom{
           room: message.room,
           message: message
         })
@@ -219,7 +219,7 @@ defmodule ChirpCockroach.Chats do
     |> Repo.insert()
     |> case do
       {:ok, message} = result ->
-        Chats.EventHandler.handle(%Chats.Events.NewMessageInRoom{room: room, message: message})
+        ChirpCockroach.Events.publish(%Chats.Events.NewMessageInRoom{room: room, message: message})
 
         result
 

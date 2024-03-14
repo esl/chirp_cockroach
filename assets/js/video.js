@@ -12,136 +12,78 @@ window.streamsRepo = {
     'host': new MediaStream
 };
 
+
+window.calls = [];
+
+window.previewStream = new MediaStream();
+
+window.peer.on('call', call => {
+    window.calls.push(call);
+    call.answer(window.stream)
+})
+
 const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
-
-peerStreamHook = {
-    mounted() {
-        this.el.dataset.peer_id;
+getUserMedia(
+    { audio: true, video: { width: 320, height: 240 } },
+    (stream) => {
+        const video = stream.getVideoTracks()[0];
+        video.enabled = false;
+        stream.getAudioTracks()[0].enabled = false;
+        window.stream = stream;
+        window.previewStream.addTrack(video);
 
     }
+)
+ 
+const addVideoStream = (video, stream) => {
+    video.srcObject = stream;
+    video.onloadedmetadata = (e) => {
+        video.play();
+      };
 }
+
+const addTrack = (type, track) => {
+    window.calls.forEach(call => {
+        if (call.peerConnection) {
+            call.peerConnection.getSenders().forEach((sender) => {
+                if (sender.track && sender.track.kind === type) {
+                    sender.track.replaceTrack(track);
+                    sender.track.enabled = true;
+                }
+            })
+        }
+    })
+}
+
+const disableTrack = (type) => {
+    window.calls.forEach(call => {
+        if (call.peerConnection) {
+            call.peerConnection.getSenders().forEach((sender) => {
+                if (sender.track && sender.track.kind === type) {
+                    sender.track.enabled = false;
+                }
+            })
+        }
+    })
+}
+
 
 previewHook = {
-    mounted() {
-        this.el.srcObject = window.streamsRepo['host'];
-
-        window.streamsRepo['host'].addEventListener("addtrack", (event) => {
-            this.el.play()
-        });
-
-        this.el.onloadedmetadata = (event) => {
-            this.el.play()
-        }
-
-    }
-}
-
-transcriptionHook = {
-    mounted() {
-        this.streamId = this.el.dataset.stream_id;
-        this.uploadId = this.el.dataset.upload_id;
-        this.sourceStream = window.streamsRepo[this.streamId];
-        this.stream = new MediaStream();
-        this.mediaRecorder = new MediaRecorder(this.stream);
-
-        this.sourceStream.ontrackadd = event => {
-            console.log("trackAdded");
-            console.log(event);
-            this.sourceStream.getAudioTracks().forEach(track => {
-                this.stream.addTrack(track);
-            })
-
-            console.log(this.stream.getAudioTracks())
-            this.mediaRecorder.start(5000);
-        };
-        
-        this.sourceStream.onremovetrack =  (event) => {
-            console.log("trackRemoved");
-            console.log(event);
-        }
-
-        this.mediaRecorder.addEventListener("dataavailable", (event) => {
-            console.log("mediarecroder dataavailable");
-            if (event.data.size > 0) {    
-                const audioBlob = new Blob([event.data]);
-
-                audioBlob.arrayBuffer().then((buffer) => {
-                    const context = new AudioContext({ sampleRate: SAMPLING_RATE });
-
-                    context.decodeAudioData(buffer, (audioBuffer) => {
-                        const pcmBuffer = this.audioBufferToPcm(audioBuffer);
-                        const buffer = this.convertEndianness32(
-                            pcmBuffer,
-                            this.getEndianness(),
-                            this.el.dataset.endiannes
-                        );
-
-                        this.upload(this.uploadId, [new Blob([buffer])]);
-                    });
-                });
-            }
-        });
-    },
-    audioBufferToPcm(audioBuffer) {
-        const numChannels = audioBuffer.numberOfChannels;
-        const length = audioBuffer.length;
-    
-        const size = Float32Array.BYTES_PER_ELEMENT * length;
-        const buffer = new ArrayBuffer(size);
-    
-        const pcmArray = new Float32Array(buffer);
-    
-        const channelDataBuffers = Array.from(
-          { length: numChannels },
-          (x, channel) => audioBuffer.getChannelData(channel)
-        );
-    
-        for (let i = 0; i < pcmArray.length; i++) {
-          let sum = 0;
-    
-          for (let channel = 0; channel < numChannels; channel++) {
-            sum += channelDataBuffers[channel][i];
-          }
-    
-          pcmArray[i] = sum / numChannels;
-        }
-    
-        return buffer;
-      },
-    
-      convertEndianness32(buffer, from, to) {
-        if (from === to) {
-          return buffer;
-        }
-    
-        for (let i = 0; i < buffer.byteLength / 4; i++) {
-          const b1 = buffer[i];
-          const b2 = buffer[i + 1];
-          const b3 = buffer[i + 2];
-          const b4 = buffer[i + 3];
-          buffer[i] = b4;
-          buffer[i + 1] = b3;
-          buffer[i + 2] = b2;
-          buffer[i + 3] = b1;
-        }
-    
-        return buffer;
-      },
-    
-      getEndianness() {
-        const buffer = new ArrayBuffer(2);
-        const int16Array = new Uint16Array(buffer);
-        const int8Array = new Uint8Array(buffer);
-    
-        int16Array[0] = 1;
-    
-        if (int8Array[0] === 1) {
-          return "little";
+    initialize() {
+        if (window.previewStream) {
+            addVideoStream(this.el, window.previewStream);
         } else {
-          return "big";
+            new Promise((_resolve) => {
+                setTimeout(() => {
+                    this.initialize()
+                }, 1000);
+            })
         }
-      },
+    },
+    mounted() {
+        this.initialize()
+    }
 }
 
 cameraHook = {
@@ -150,12 +92,8 @@ cameraHook = {
 
         this.el.addEventListener("click", (event) => {
             if(this.track === null) {
-                console.log("enable camera");
-
                 this.enableCamera();
             } else {
-                console.log("disable camera");
-
                 this.disableCamera();
             }
         })
@@ -168,8 +106,10 @@ cameraHook = {
                 { audio: false, video: { width: 320, height: 240 } },
                 (stream) => {
                     this.track = stream.getVideoTracks()[0];
-                    window.streamsRepo['host_video'].addTrack(this.track);
-                    window.streamsRepo['host'].addTrack(this.track);
+                    window.stream.getVideoTracks()[0].enabled = true;
+                    window.previewStream.getVideoTracks()[0].enabled = true;
+                    addTrack('video', this.track);
+
                 },
                 (err) => {
                     console.error(`The following error occurred: ${err.name}`);
@@ -181,9 +121,9 @@ cameraHook = {
     },
 
     disableCamera() {
-        if (window.streamsRepo['host']) {
-            window.streamsRepo['host_video'].removeTrack(this.track);
-            window.streamsRepo['host'].removeTrack(this.track);
+        if (window.stream.getVideoTracks()[0] && window.stream.getVideoTracks[0].enabled) {
+            window.stream.getVideoTracks()[0].enabled = false;
+            disableTrack('video');
             this.track = null;
         }
     }
@@ -195,12 +135,8 @@ microphoneHook = {
 
         this.el.addEventListener("click", (event) => {
             if(this.track === null) {
-                console.log("enable microphone");
-
                 this.enableMicrophone();
             } else {
-                console.log("disable microphone");
-
                 this.disableMicrophone();
             }
         })
@@ -213,9 +149,8 @@ microphoneHook = {
                 { audio: true, video: false },
                 (stream) => {
                     this.track = stream.getAudioTracks()[0];
-                    window.streamsRepo['host_audio'].addTrack(this.track);
-                    window.streamsRepo['host_audio'].ontrackadd()
-                    window.streamsRepo['host'].addTrack(this.track);
+                    window.stream.getAudioTracks()[0].enabled = true;
+                    addTrack('audio', this.track);
                 },
                 (err) => {
                     console.error(`The following error occurred: ${err.name}`);
@@ -227,93 +162,67 @@ microphoneHook = {
     },
 
     disableMicrophone() {
-        if (window.streamsRepo['host']) {
-            window.streamsRepo['host'].removeTrack(this.track);
-            window.streamsRepo['host_audio'].removeTrack(this.track);
-            window.streamsRepo['host_audio'].onremovetrack()
-
-
+        if (window.stream.getAudioTracks()[0] && window.stream.getAudioTracks()[0].enabled) {
+            window.stream.getAudioTracks()[0].enabled = false;
+            disableTrack('audio');
             this.track = null;
         }
     }
 }
 
 peerStreamHook = {
-    mounted() {
-        const peer_id = this.el.dataset.peer_id
-        const video = this.el;
+    initialize() {
+        if (window.stream) {
+            this.call = window.peer.call(this.peer_id, window.stream);
 
-        this.call = peer.call(peer_id, window.streamsRepo['host']);
-
-        this.call.on('stream', peerStream => {
-            this.streamsRepo[peer_id] = peerStream;
-            addVideoStream(video, peerStream);
-        })
-    }
-}
-
-
-
-
-
-function addVideoStream(video, stream) {
-    video.srcObject = stream;
-    video.onloadedmetadata = (e) => {
-        video.play();
-      };
-}
-function setHostStream(video) {
-    getUserStream((stream) => {
-        addVideoStream(video, stream);
-
-        peer.on('call', (call) => {
-            call.answer(stream)
-
-            call.on('stream', (otherStream) => {
-                if (video) {
-                    addVideoStream(video, otherStream)
-                } else {
-                    console.error("Video element with id `#video-${call.peer.id}` is missing in document")
-                }
+            window.calls.push(this.call);
+    
+            console.log("calling")
+            console.log(this.call)
+    
+            this.call.on('error', error => {
+                console.log("error")
+                console.log(error)
             })
-            call.on('error', event => console.log(event));
-        })
-      })
-}
+    
+            this.call.on('close', error => {
+                console.log("close")
+                console.log(error)
+            })
+    
+            this.call.on('stream', peerStream => {
+                addVideoStream(this.video, peerStream);
+            })
+        } else {
+            new Promise((_resolve) => {
+                setTimeout(() => {
+                    this.initialize()
+                }, 1000);
+            })
+        }
 
-function getUserStream(stream_callback) {
-    if (getUserMedia) {
-        getUserMedia(
-            { audio: false, video: { width: 320, height: 240 } },
-            (stream) => {
+    },
+    mounted() {
+        this.peer_id = this.el.dataset.peer_id
+        this.video = this.el;
 
-                window.userStream = stream;
-                stream_callback(stream)
-            },
-            (err) => {
-                console.error(`The following error occurred: ${err.name}`);
-            },
-        );
-    } else {
-        console.error("getUserMedia not supported");
+        this.initialize();
     }
 }
+
+
+
+
 
 export const VideoHooks = {
-    cameraHook: cameraHook,
-    previewHook: previewHook,
-    microphoneHook: microphoneHook,
-    transcriptionHook: transcriptionHook,
-    video: {
+    cameraControl: cameraHook,
+    microphoneControl: microphoneHook,
+    previewVideo: previewHook,
+    setPeerId: {
         mounted() {
-            this.pushEvent("set-peer_id", {peer_id: peer.id})
-        }
-    },
-    hostVideo: {
-        mounted() {
-            const video = this.el;
-            addVideoStream(video, window.streamsRepo['host']);
-
+            this.pushEvent("set-peer-id", {peer_id: peer.id})
+            console.log(`set_peer: ${peer.id}`);
+            this.el.disabled = false;
         }
     },
     peerVideo: peerStreamHook

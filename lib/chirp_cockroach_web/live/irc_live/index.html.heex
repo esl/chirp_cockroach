@@ -36,13 +36,15 @@
     <% end %>
 
     <%= if @room && @room.id do %>
+      <button id="start-stream" phx-click="start-stream" phx-hook="setPeerId">Start Stream</button>
+      <.video_call id={"video-#{@room.id}"} media_streams={@streams.video_streams} current_user={@current_user} />
       <.irc_messages id="room-messages" room={@room} messages={@streams.messages} current_user={@current_user} />
     <% end %>
 
   </div>
   <div class="chat-sidebar">
     <%= if @room && @room.id do %>
-    <.irc_participants users={@room.users} />
+    <.irc_participants users={@room.users} current_user={@current_user} />
   <% end %>
   </div>
 </div>

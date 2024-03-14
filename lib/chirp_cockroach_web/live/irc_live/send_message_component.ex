@@ -1,5 +1,6 @@
 defmodule ChirpCockroachWeb.IrcLive.SendMessageComponent do
   use ChirpCockroachWeb, :live_component
+  import ChirpCockroachWeb.MultimediaComponents
 
   alias ChirpCockroach.Chats
   alias ChirpCockroach.Files
@@ -16,7 +17,7 @@ defmodule ChirpCockroachWeb.IrcLive.SendMessageComponent do
   end
 
   @impl true
-  def handle_event("validate", %{"message" => message_params}, socket) do
+def handle_event("validate", %{"message" => message_params}, socket) do
     changeset =
       socket.assigns.message
       |> Chats.Message.changeset(message_params)

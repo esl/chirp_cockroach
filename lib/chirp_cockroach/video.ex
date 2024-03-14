@@ -3,123 +3,20 @@ defmodule ChirpCockroach.Video do
   The Video context.
   """
 
-  import Ecto.Query, warn: false
-  alias ChirpCockroach.Repo
+  alias ChirpCockroach.Video
 
-  alias ChirpCockroach.Video.Room
-
-  @doc """
-  Returns the list of video_rooms.
-
-  ## Examples
-
-      iex> list_video_rooms()
-      [%Room{}, ...]
-
-  """
-  def list_video_rooms do
-    Repo.all(Room)
+  def subscribe(room_id) do
+    Phoenix.PubSub.subscribe(ChirpCockroach.PubSub, "room:#{room_id}")
   end
 
-  @doc """
-  Gets a single room.
-
-  Raises `Ecto.NoResultsError` if the Room does not exist.
-
-  ## Examples
-
-      iex> get_room!(123)
-      %Room{}
-
-      iex> get_room!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_room!(id), do: Repo.get!(Room, id)
-
-  def get_room_participants!(id) do
-    id
-    |> get_room!()
-    |> ChirpCockroach.Video.Call.get_call()
-    |> Map.fetch!(:peers)
+  def broadcast(%{room_id: room_id}, event) do
+    Phoenix.PubSub.broadcast(ChirpCockroach.PubSub, "room:#{room_id}", event)
   end
 
-  def subscribe(room) do
-    Phoenix.PubSub.subscribe(ChirpCockroach.PubSub, "room:#{room.id}")
-  end
-
-  def broadcast(room, event) do
-    Phoenix.PubSub.broadcast(ChirpCockroach.PubSub, "room:#{room.id}", event)
-  end
-
-  def join(room, peer_id) do
-    peer = %ChirpCockroach.Video.Peer{id: peer_id, name: peer_id}
-
-    ChirpCockroach.Video.Call.join(room, peer)
-  end
-
-  @doc """
-  Creates a room.
-
-  ## Examples
-
-      iex> create_room(%{field: value})
-      {:ok, %Room{}}
-
-      iex> create_room(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_room(attrs \\ %{}) do
-    %Room{}
-    |> Room.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a room.
-
-  ## Examples
-
-      iex> update_room(room, %{field: new_value})
-      {:ok, %Room{}}
-
-      iex> update_room(room, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_room(%Room{} = room, attrs) do
-    room
-    |> Room.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Deletes a room.
-
-  ## Examples
-
-      iex> delete_room(room)
-      {:ok, %Room{}}
-
-      iex> delete_room(room)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_room(%Room{} = room) do
-    Repo.delete(room)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking room changes.
-
-  ## Examples
-
-      iex> change_room(room)
-      %Ecto.Changeset{data: %Room{}}
-
-  """
-  def change_room(%Room{} = room, attrs \\ %{}) do
-    Room.changeset(room, attrs)
+  def start_stream(user, room, peer_id) do
+    %{room_id: room.id, peer_id: peer_id, user_id: user.id, name: user.nickname}
+    |> Video.Peer.changeset()
+    |> Ecto.Changeset.apply_action!(:build)
+    |> Video.Call.join(room)
   end
 end

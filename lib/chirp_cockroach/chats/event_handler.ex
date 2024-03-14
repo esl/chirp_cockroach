@@ -2,7 +2,7 @@ defmodule ChirpCockroach.Chats.EventHandler do
   alias ChirpCockroach.Chats
   alias ChirpCockroach.Repo
 
-  def handle(%Chats.Events.RoomCreated{room: room} = event) do
+  def handle(%Chats.Events.RoomCreated{room: room}) do
     Chats.broadcast({:room_created, Repo.preload(room, :users)})
 
     :ok
@@ -26,6 +26,18 @@ defmodule ChirpCockroach.Chats.EventHandler do
 
   def handle(%Chats.Events.NewMessageInRoom{message: message}) do
     Chats.room_broadcast(message, {:new_message_in_room, Repo.preload(message, :user)})
+
+    :ok
+  end
+
+  def handle(%ChirpCockroach.Video.Events.VideoStreamAdded{peer: peer}) do
+    Chats.room_broadcast(peer, {:video_stream_added, peer})
+
+    :ok
+  end
+
+  def handle(%ChirpCockroach.Video.Events.VideoStreamRemoved{peer: peer}) do
+    Chats.room_broadcast(peer, {:video_stream_removed, peer})
 
     :ok
   end

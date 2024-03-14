@@ -16,7 +16,7 @@ defmodule ChirpCockroach.Files do
   def persist_audio_file(source, name) do
     destination = Path.join([:code.priv_dir(:chirp_cockroach), "static", "tmp", name])
     args = ~w(-i #{source} -vn codec:a libmp3lame -b:a 320k -ar 48000 #{destination})
-    {data, 0} = System.cmd("ffmpeg", args)
+    {_data, 0} = System.cmd("ffmpeg", args)
 
     {:ok, %{src: destination, path: "/tmp/#{name}"}}
   end

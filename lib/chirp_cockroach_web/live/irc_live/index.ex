@@ -1,6 +1,6 @@
 defmodule ChirpCockroachWeb.IrcLive.Index do
   use ChirpCockroachWeb, :live_view
-
+  import ChirpCockroachWeb.MultimediaComponents
   import ChirpCockroachWeb.IrcLive.IrcComponents
 
   alias ChirpCockroach.Chats
@@ -15,6 +15,7 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
       socket
       |> stream_configure(:rooms, dom_id: &"joined-room-#{&1.id}")
       |> stream_configure(:messages, dom_id: &"room-#{&1.room_id}-message-#{&1.id}")
+      |> stream_configure(:video_streams, dom_id: &"video-stream-#{&1.peer_id}")
 
     {:ok,
      socket
@@ -57,17 +58,24 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
   defp set_active_room(socket, room) do
     Chats.room_subscribe(room)
 
+    %{peers: video_streams} =  ChirpCockroach.Video.Call.get_call(room)
+
     socket
     |> assign(:page_title, room.name)
     |> assign(:room, room)
+    |> assign(:peer_id, nil)
+    |> stream(:video_streams, video_streams, reset: true)
     |> stream(:messages, Enum.reverse(Chats.get_room_messages(room)), reset: true)
     |> assign(:message_changeset, Chats.Message.changeset(%Chats.Message{}, %{}))
+
   end
 
   defp reset_active_room(socket) do
     socket
     |> assign(:room, nil)
+    |> assign(:peer_id, nil)
     |> stream(:messages, [], reset: true)
+    |> stream(:video_streams, [], reset: true)
     |> assign(:message_changeset, Chats.Message.changeset(%Chats.Message{}, %{}))
   end
 
@@ -90,6 +98,22 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
   def handle_info({:new_message_in_room, message}, socket) do
     if active_room?(socket, message) do
       {:noreply, socket |> stream_insert(:messages, message, at: 0)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info({:video_stream_added, peer}, socket) do
+    if active_room?(socket, peer) do
+      {:noreply, socket |> stream_insert(:video_streams, peer)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info({:video_stream_removed, peer}, socket) do
+    if active_room?(socket, peer) do
+      {:noreply, socket |> stream_delete(:video_streams, peer)}
     else
       {:noreply, socket}
     end
@@ -120,6 +144,17 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
     :ok = Chats.leave_room(socket.assigns.current_user, room)
 
     socket |> stream_delete(:rooms, room) |> push_patch(to: ~p"/irc") |> noreply()
+  end
+
+  def handle_event("set-peer-id", %{"peer_id" => peer_id}, socket) do
+    socket
+    |> assign(:peer_id, peer_id)
+    |> noreply()
+  end
+
+  def handle_event("start-stream", _, socket) do
+    ChirpCockroach.Video.start_stream(socket.assigns.current_user, socket.assigns.room, socket.assigns.peer_id)
+    {:noreply, socket}
   end
 
   defp noreply(socket) do
