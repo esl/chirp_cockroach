@@ -1,9 +1,11 @@
 defmodule ChirpCockroach.Files do
   def persist_tmp_file(source, name) do
     destination = Path.join([:code.priv_dir(:chirp_cockroach), "static", "tmp", name])
-    File.cp!(source, destination)
+    File.cp(source, destination)
+  end
 
-    {:ok, destination}
+  def delete_tmp_file(source) do
+    File.rm(source)
   end
 
   def persist_file(source, name) do
@@ -23,6 +25,10 @@ defmodule ChirpCockroach.Files do
 
   def file_source(path) do
     {:file, Path.join([:code.priv_dir(:chirp_cockroach), "static", path])}
+  end
+
+  def read!(path) do
+    File.read!(path)
   end
 
   def delete_tmp_file(name) do

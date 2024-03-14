@@ -13,11 +13,12 @@ defmodule ChirpCockroachWeb.IrcLive.SendMessageComponent do
      socket
      |> assign(assigns)
      |> allow_upload(:audio_file, accept: :any, progress: &handle_progress/3, auto_upload: true)
+     |> allow_upload(:transcription, accept: :any, progress: &handle_progress/3, auto_upload: true)
      |> assign(:changeset, changeset)}
   end
 
   @impl true
-def handle_event("validate", %{"message" => message_params}, socket) do
+  def handle_event("validate", %{"message" => message_params}, socket) do
     changeset =
       socket.assigns.message
       |> Chats.Message.changeset(message_params)
@@ -49,6 +50,14 @@ def handle_event("validate", %{"message" => message_params}, socket) do
     [file] = consume_uploaded_entries(socket, :audio_file, &process_tmp_audio_file/2)
 
     {:ok, _} = Chats.send_voice_to_room(socket.assigns.current_user, socket.assigns.room, file)
+
+    {:noreply, socket}
+  end
+
+  defp handle_progress(:transcription, entry, socket) when entry.done? do
+    [file] = consume_uploaded_entries(socket, :transcription, &process_tmp_audio_file/2)
+
+    {:ok, _} = Chats.send_transcription(socket.assigns.current_user, socket.assigns.room, file)
 
     {:noreply, socket}
   end

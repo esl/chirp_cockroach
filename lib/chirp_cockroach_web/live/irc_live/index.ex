@@ -58,7 +58,7 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
   defp set_active_room(socket, room) do
     Chats.room_subscribe(room)
 
-    %{peers: video_streams} =  ChirpCockroach.Video.Call.get_call(room)
+    %{peers: video_streams} = ChirpCockroach.Video.Call.get_call(room)
 
     socket
     |> assign(:page_title, room.name)
@@ -67,7 +67,6 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
     |> stream(:video_streams, video_streams, reset: true)
     |> stream(:messages, Enum.reverse(Chats.get_room_messages(room)), reset: true)
     |> assign(:message_changeset, Chats.Message.changeset(%Chats.Message{}, %{}))
-
   end
 
   defp reset_active_room(socket) do
@@ -153,7 +152,12 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
   end
 
   def handle_event("start-stream", _, socket) do
-    ChirpCockroach.Video.start_stream(socket.assigns.current_user, socket.assigns.room, socket.assigns.peer_id)
+    ChirpCockroach.Video.start_stream(
+      socket.assigns.current_user,
+      socket.assigns.room,
+      socket.assigns.peer_id
+    )
+
     {:noreply, socket}
   end
 

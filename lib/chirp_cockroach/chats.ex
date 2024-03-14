@@ -170,7 +170,8 @@ defmodule ChirpCockroach.Chats do
     |> case do
       {:ok, message} = result ->
         ChirpCockroach.Events.publish(%Chats.Events.NewMessageInRoom{room: room, message: message})
-        transcribe_voice_message!(message)
+
+        spawn(fn -> transcribe_voice_message!(message) end)
 
         result
 
@@ -191,6 +192,38 @@ defmodule ChirpCockroach.Chats do
 
       error ->
         error
+    end
+  end
+
+  def send_transcription(user, room, %{path: path}) do
+    %Chats.Message{user_id: user.id, room_id: room.id, kind: :transcription}
+    |> Repo.insert()
+    |> case do
+      {:ok, message} = result ->
+        ChirpCockroach.Events.publish(%Chats.Events.NewMessageInRoom{room: room, message: message})
+
+        spawn(fn ->
+          path
+          |> ChirpCockroach.Files.file_source()
+          |> ChirpCockroach.Audio.transcribe()
+          |> case do
+            {:ok, %{transcription: transcription}} ->
+              message =
+                message
+                |> Chats.Message.transcription_changeset(%{audio_transcription: transcription})
+                |> Repo.update!()
+                |> Repo.preload(:room)
+
+              ChirpCockroach.Events.publish(%Chats.Events.NewMessageInRoom{
+                room: message.room,
+                message: message
+              })
+
+              ChirpCockroach.Files.delete_tmp_file(path)
+          end
+        end)
+
+        result
     end
   end
 

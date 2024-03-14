@@ -8,7 +8,7 @@ defmodule ChirpCockroach.Chats.Message do
     field :text, :string
     field :audio_transcription, :string
     field :file_path, :string
-    field :kind, Ecto.Enum, values: ~w(text voice event image)a
+    field :kind, Ecto.Enum, values: ~w(text voice event image transcription)a
     belongs_to(:user, ChirpCockroach.Accounts.User)
     belongs_to(:room, ChirpCockroach.Chats.Room)
 

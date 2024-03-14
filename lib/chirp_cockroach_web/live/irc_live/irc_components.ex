@@ -119,6 +119,13 @@ defmodule ChirpCockroachWeb.IrcLive.IrcComponents do
           <pre><%= @message.text %></pre>
         </div>
         """
+
+      :transcription ->
+        ~H"""
+        <div id={@id} class="message-container">
+          <p><span>[<%= format_message_date(@message.inserted_at) %>] </span><span class="user"><%= @message.user.nickname %></span>(Transcription): <span> <%= @message.audio_transcription || "said something..." %></span></p>
+        </div>
+        """
     end
   end
 

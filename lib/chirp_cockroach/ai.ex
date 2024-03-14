@@ -1,5 +1,4 @@
 defmodule ChirpCockroach.Ai do
-
   alias ChirpCockroach.Serving
 
   def answer_question(question) do
@@ -24,7 +23,9 @@ defmodule ChirpCockroach.Ai do
     case Nx.Serving.batched_run(serving, data) do
       %{results: [%{text: text}]} ->
         {:ok, text}
-      unexpected -> {:error, {:unexpected_response, unexpected}}
+
+      unexpected ->
+        {:error, {:unexpected_response, unexpected}}
     end
   end
 end

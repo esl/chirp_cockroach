@@ -94,9 +94,7 @@ const MicrophoneControl = {
         });
 
         this.uploadId = this.el.dataset.upload === "false" ? false : this.el.dataset.upload;
-        console.log(this.el.dataset);
-        this.controlStream = this.el.dataset.control_stream || false;
-        console.log(this.controlStream);
+        this.controlStream = this.el.dataset.control_stream === "false" ? false : this.el.dataset.control_stream;
 
         this.initialize();
     },
@@ -182,24 +180,29 @@ const CameraControl = {
         this.enabled = false;
 
         this.el.addEventListener("click", (event) => {
-            if(this.track === null) {
+            if(!this.enabled) {
                 this.enableCamera();
             } else {
                 this.disableCamera();
             }
         })
+        console.log("mounted")
 
     },
 
     enableCamera() {
+        console.log("init");
         if (getUserMedia) {
             getUserMedia(
                 { audio: false, video: { width: 320, height: 240 } },
                 (stream) => {
+                    console.log("stream")
                     this.track = stream.getVideoTracks()[0];
                     window.stream.getVideoTracks()[0].enabled = true;
                     window.previewStream.getVideoTracks()[0].enabled = true;
+                    console.log("all enabled")
                     addTrack('video', this.track);
+                    console.log("track added")
                     this.enabled = true;
                     this.el.classList.add("button-active");
 
@@ -216,11 +219,10 @@ const CameraControl = {
     disableCamera() {
         if (window.stream.getVideoTracks()[0] && window.stream.getVideoTracks()[0].enabled) {
             window.stream.getVideoTracks()[0].enabled = false;
-            disableTrack('video');
-            this.enabled = false;
-            this.el.classList.remove("button-active");
-
         }
+        disableTrack('video');
+        this.enabled = false;
+        this.el.classList.remove("button-active");
     }
 }
 

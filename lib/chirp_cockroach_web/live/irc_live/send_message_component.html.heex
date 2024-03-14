@@ -17,4 +17,7 @@
     <form phx-change="noop" phx-submit="noop" phx-target={@myself}>
         <.live_file_input id={"audio-file-upload"} upload={@uploads[:audio_file]} hidden phx-target={@myself}/>
     </form>
+    <form phx-change="noop" phx-submit="noop" phx-target={@myself}>
+        <.live_file_input id={"transcription-upload"} upload={@uploads[:transcription]} hidden phx-target={@myself}/>
+    </form>
 </div>
