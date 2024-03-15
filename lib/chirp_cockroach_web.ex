@@ -96,7 +96,6 @@ defmodule ChirpCockroachWeb do
       use Phoenix.HTML
 
       import Phoenix.Component
-      import ChirpCockroachWeb.LiveHelpers
 
       import ChirpCockroachWeb.CoreComponents
 

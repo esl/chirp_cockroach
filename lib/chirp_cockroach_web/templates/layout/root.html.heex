@@ -22,12 +22,11 @@
           <ul>
             <%= if @current_user do %>
             <li><%= @current_user.nickname %></li>
-            <li><.link navigate={~p"/users/settings"}>Settings</.link></li>
-
-            <li><.link href={~p"/users/log_out"} method="delete">Log out</.link></li>
+              <li><.link navigate={~p"/users/settings"}>Settings</.link></li>
+              <li><.link href={~p"/users/log_out"} method="delete">Log out</.link></li>
             <% else %>
-            <li><.link navigate={~p"/users/log_in"}>Login</.link></li>
-            <li><.link navigate={~p"/users/register"}>Register</.link></li>
+              <li><.link navigate={~p"/users/log_in"}>Log in</.link></li>
+              <li><.link navigate={~p"/users/register"}>Register</.link></li>
             <% end %>
             <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
               <li><%= link "LiveDashboard", to: Routes.live_dashboard_path(@conn, :home) %></li>

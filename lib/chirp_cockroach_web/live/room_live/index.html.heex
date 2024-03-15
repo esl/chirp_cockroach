@@ -1,0 +1,41 @@
+<h1>Listing Video rooms</h1>
+
+<%= if @live_action in [:new, :edit] do %>
+  <.modal return_to={Routes.room_index_path(@socket, :index)}>
+    <.live_component
+      module={ChirpCockroachWeb.RoomLive.FormComponent}
+      id={@room.id || :new}
+      title={@page_title}
+      action={@live_action}
+      room={@room}
+      return_to={Routes.room_index_path(@socket, :index)}
+    />
+  </.modal>
+<% end %>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="video_rooms">
+    <%= for room <- @video_rooms do %>
+      <tr id={"room-#{room.id}"}>
+        <td><%= room.name %></td>
+
+        <td>
+          <span><.link navigate={~p"/video_rooms/#{room.id}"}>Show</.link></span>
+          <span><.link patch={~p"/video_rooms/#{room.id}/edit"}>Edit</.link></span>
+          <span><%= link "Delete", to: "#", phx_click: "delete", phx_value_id: room.id, data: [confirm: "Are you sure?"] %></span>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<span>
+  <.link patch={~p"/video_rooms/new"}>New Room</.link>
+</span>

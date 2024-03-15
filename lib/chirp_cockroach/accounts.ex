@@ -130,7 +130,6 @@ defmodule ChirpCockroach.Accounts do
 
   @doc """
   Updates the user email using the given token.
-
   If the token matches, the user email is updated and the token is deleted.
   The confirmed_at date is also updated to the current time.
   """
@@ -269,7 +268,6 @@ defmodule ChirpCockroach.Accounts do
 
   @doc """
   Confirms a user by the given token.
-
   If the token matches, the user account is marked as confirmed
   and the token is deleted.
   """

@@ -93,11 +93,11 @@ defmodule ChirpCockroachWeb.UserResetPasswordLiveTest do
 
       {:ok, conn} =
         lv
-        |> element(~s|main a:fl-contains("Login")|)
+        |> element(~s|main a:fl-contains("Log in")|)
         |> render_click()
         |> follow_redirect(conn, ~p"/users/log_in")
 
-      assert conn.resp_body =~ "Login"
+      assert conn.resp_body =~ "Log in"
     end
 
     test "redirects to password reset page when the Register button is clicked", %{
