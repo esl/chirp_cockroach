@@ -30,9 +30,4 @@ defmodule ChirpCockroach.Files do
   def read!(path) do
     File.read!(path)
   end
-
-  def delete_tmp_file(name) do
-    path = Path.join([:code.priv_dir(:chirp_cockroach), "tmp", name])
-    File.rm!(path)
-  end
 end

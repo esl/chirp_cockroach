@@ -34,7 +34,9 @@ defmodule ChirpCockroachWeb.IrcLive.Index do
     socket
     |> assign(:page_title, "IRC")
     |> reset_active_room()
-    |> stream(:available_rooms, Chats.list_available_rooms(socket.assigns.current_user), reset: true)
+    |> stream(:available_rooms, Chats.list_available_rooms(socket.assigns.current_user),
+      reset: true
+    )
   end
 
   defp apply_action(socket, :new, _params) do

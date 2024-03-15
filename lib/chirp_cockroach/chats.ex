@@ -65,7 +65,7 @@ defmodule ChirpCockroach.Chats do
       |> where([participant], participant.user_id in ^user_ids)
       |> select([:room_id])
 
-    where(query, [room], not room.id in subquery(room_ids))
+    where(query, [room], room.id not in subquery(room_ids))
   end
 
   @doc """
@@ -222,9 +222,9 @@ defmodule ChirpCockroach.Chats do
         spawn(fn ->
           path
           |> ChirpCockroach.Files.file_source()
-          |> ChirpCockroach.Audio.transcribe()
+          |> ChirpCockroach.Ai.whisper()
           |> case do
-            {:ok, %{transcription: transcription}} ->
+            {:ok, transcription} ->
               message =
                 message
                 |> Chats.Message.transcription_changeset(%{audio_transcription: transcription})
@@ -247,9 +247,9 @@ defmodule ChirpCockroach.Chats do
   def transcribe_voice_message!(message) do
     message.file_path
     |> ChirpCockroach.Files.file_source()
-    |> ChirpCockroach.Audio.transcribe()
+    |> ChirpCockroach.Ai.whisper()
     |> case do
-      {:ok, %{transcription: transcription}} ->
+      {:ok, transcription} ->
         message =
           message
           |> Chats.Message.transcription_changeset(%{audio_transcription: transcription})
