@@ -28,10 +28,7 @@ config :chirp_cockroach, ChirpCockroachWeb.Endpoint,
   secret_key_base: "qBbT4OFQSLe8yCOkmYcqG4p7e1s9ZEiEjeIXhn+XcajwB66PXSTV6BLIp9q2kilr",
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    esbuild: {Esbuild, :install_and_run, [:stream, ~w(--sourcemap=inline --watch)]},
-    esbuild: {Esbuild, :install_and_run, [:whisper, ~w(--sourcemap=inline --watch)]},
-    esbuild: {Esbuild, :install_and_run, [:libstream_worker, ~w(--sourcemap=inline --watch)]}
+    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]}
   ]
 
 # ## SSL Support

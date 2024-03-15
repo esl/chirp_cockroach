@@ -77,12 +77,6 @@ or as database URL:
 - CockroachDB does not support locking tables so we need to manually disable it by adding `migration_lock: false`
 - the configuration above uses default values, but it's possible (and recommended) to enable `ssl` for a production database
 
-## Whisper Setup
-
-Due to limitation for using SharedStateBuffer page has to work in CORS, so external downloads doesn't work. To be able to download model from page and use whisper:
-
-1. Download whisper model(`https://whisper.ggerganov.com/ggml-model-whisper-base.en-q5_1.bin`) and copy it to `priv/static/assets/whisper_model.bin`
-
 ## Basic setup using docker-compose
 
 ### Requirements
@@ -131,11 +125,6 @@ $ mix deps.get
 
 # optional
 $ mix compile
-```
-
-Install Node dependencies
-```bash
-$ cd assets && npm install
 ```
 
 Setup database

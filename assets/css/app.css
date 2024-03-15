@@ -176,37 +176,21 @@
   flex-direction: column;
 }
 
+.send-message {
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 2px;
+}
+
 .chat {
   min-width: 620px;
   min-height: 300px;
   display: flex;
   flex-direction: row;
-  .list {
-    width: 150px;
-    padding: 3px 0;
-    li {
-      margin: 0 0 4px 0;
-      padding: 0 2px;
-      cursor: pointer;
-      &.active {
-        text-decoration: underline;
-      }
-      span.new {
-        float: right;
-      }
-    }
-  }
-
-  .send-message {
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 2px;
-  }
 
   .messages {
     width: 100%;
     max-height: 600px;
     overflow: scroll;
-    
   }
   .container {
     flex: 1;
