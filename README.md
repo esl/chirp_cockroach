@@ -139,6 +139,35 @@ Start Phoenix server in interactive mode
 $ iex -S mix phx.server
 ```
 
+### Vue-Cockroach Client
+
+Enter the Vue-Cockroach directory
+```bash
+cd vue-cockroach
+```
+
+Install dependencies
+```bash
+npm install
+```
+
+Start Dev environment
+```bash
+npm run dev
+```
+
+#### Extra methods:
+
+Linter:
+```bash
+npm run lint
+```
+
+Format:
+```bash
+npm run format
+```
+
 ## Features
 
 To access the Phoenix application visit: `localhost:4000` and you should see:
