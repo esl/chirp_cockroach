@@ -21,6 +21,7 @@ defmodule ChirpCockroach.Timeline do
     Post
     |> order_by(desc: :id)
     |> Repo.all()
+    |> Repo.preload(:user)
   end
 
   @doc """
@@ -37,22 +38,19 @@ defmodule ChirpCockroach.Timeline do
       ** (Ecto.NoResultsError)
 
   """
-  def get_post!(id), do: Repo.get!(Post, id)
+  def get_post!(id) do
+    Post
+    |> Repo.get!(id)
+    |> Repo.preload(:user)
+  end
 
   @doc """
   Creates a post.
-
-  ## Examples
-
-      iex> create_post(%{field: value})
-      {:ok, %Post{}}
-
-      iex> create_post(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
-  def create_post(attrs \\ %{}) do
-    %Post{}
+  def create_post(user, attrs \\ %{}) do
+    require Logger
+    Logger.info(user)
+    %Post{user_id: user.id}
     |> Post.changeset(attrs)
     |> Repo.insert()
     |> broadcast(:post_created)
@@ -60,39 +58,25 @@ defmodule ChirpCockroach.Timeline do
 
   @doc """
   Updates a post.
-
-  ## Examples
-
-      iex> update_post(post, %{field: new_value})
-      {:ok, %Post{}}
-
-      iex> update_post(post, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
-  def update_post(%Post{} = post, attrs) do
-    post
-    |> Post.changeset(attrs)
-    |> Repo.update()
-    |> broadcast(:post_updated)
+  def update_post(user, %Post{} = post, attrs) do
+    with :ok <- authorize(user, post) do
+      post
+      |> Post.changeset(attrs)
+      |> Repo.update()
+      |> broadcast(:post_updated)
+    end
   end
 
   @doc """
   Deletes a post.
-
-  ## Examples
-
-      iex> delete_post(post)
-      {:ok, %Post{}}
-
-      iex> delete_post(post)
-      {:error, %Ecto.Changeset{}}
-
   """
-  def delete_post(%Post{} = post) do
-    post
-    |> Repo.delete()
-    |> broadcast(:post_deleted)
+  def delete_post(user, %Post{} = post) do
+    with :ok <- authorize(user, post) do
+      post
+      |> Repo.delete()
+      |> broadcast(:post_deleted)
+    end
   end
 
   @doc """
@@ -107,6 +91,9 @@ defmodule ChirpCockroach.Timeline do
   def change_post(%Post{} = post, attrs \\ %{}) do
     Post.changeset(post, attrs)
   end
+
+  defp authorize(%{id: user_id}, %Post{user_id: user_id}), do: :ok
+  defp authorize(_, _), do: {:error, :unauthorized}
 
   def subscribe do
     Phoenix.PubSub.subscribe(ChirpCockroach.PubSub, "posts")

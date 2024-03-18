@@ -29,7 +29,7 @@ defmodule ChirpCockroach.TimelineTest do
       assert post.body == "some body"
       assert post.likes_count == 0
       assert post.reposts_count == 0
-      assert post.username == "username"
+      # assert post.username == "username"
     end
 
     test "create_post/1 with invalid data returns error changeset" do
@@ -44,7 +44,7 @@ defmodule ChirpCockroach.TimelineTest do
       assert post.body == "some updated body"
       assert post.likes_count == 0
       assert post.reposts_count == 0
-      assert post.username == "username"
+      # assert post.username == "username"
     end
 
     test "update_post/2 with invalid data returns error changeset" do

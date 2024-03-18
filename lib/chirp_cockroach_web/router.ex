@@ -20,11 +20,6 @@ defmodule ChirpCockroachWeb.Router do
   scope "/", ChirpCockroachWeb do
     pipe_through(:browser)
 
-    live("/posts", PostLive.Index, :index)
-    live("/posts/new", PostLive.Index, :new)
-    live("/posts/:id/edit", PostLive.Index, :edit)
-    get("/", PageController, :index)
-
     live "/video_rooms", RoomLive.Index, :index
     live "/video_rooms/new", RoomLive.Index, :new
     live "/video_rooms/:id/edit", RoomLive.Index, :edit
@@ -89,6 +84,11 @@ defmodule ChirpCockroachWeb.Router do
 
     live_session :current_user,
       on_mount: [{ChirpCockroachWeb.UserAuth, :mount_current_user}] do
+      live("/posts", PostLive.Index, :index)
+      live("/posts/new", PostLive.Index, :new)
+      live("/posts/:id/edit", PostLive.Index, :edit)
+      get("/", PageController, :index)
+
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new
     end

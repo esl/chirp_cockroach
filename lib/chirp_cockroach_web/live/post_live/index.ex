@@ -4,6 +4,8 @@ defmodule ChirpCockroachWeb.PostLive.Index do
   alias ChirpCockroach.Timeline
   alias ChirpCockroach.Timeline.Post
 
+  import ChirpCockroachWeb.TimelineComponents
+
   @impl true
   def mount(_params, _session, socket) do
     socket = stream_configure(socket, :posts, dom_id: &"post-#{&1.id}")
@@ -19,15 +21,23 @@ defmodule ChirpCockroachWeb.PostLive.Index do
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "Edit Post")
-    |> assign(:post, Timeline.get_post!(id))
+    if socket.assigns.current_user do
+      socket
+      |> assign(:page_title, "Edit Post")
+      |> assign(:post, Timeline.get_post!(id))
+    else
+      push_unauthorized(socket)
+    end
   end
 
   defp apply_action(socket, :new, _params) do
-    socket
-    |> assign(:page_title, "New Post")
-    |> assign(:post, %Post{})
+    if socket.assigns.current_user do
+      socket
+      |> assign(:page_title, "New Post")
+      |> assign(:post, %Post{})
+    else
+      push_unauthorized(socket)
+    end
   end
 
   defp apply_action(socket, :index, _params) do
@@ -36,12 +46,37 @@ defmodule ChirpCockroachWeb.PostLive.Index do
     |> assign(:post, nil)
   end
 
-  @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    post = Timeline.get_post!(id)
-    {:ok, _} = Timeline.delete_post(post)
+  defp push_unauthorized(socket) do
+    socket
+    |> put_flash(:error, "Unauthorized")
+    |> push_patch(to: ~p"/posts")
+  end
 
-    {:noreply, stream_delete(socket, :posts, post)}
+  @impl true
+  def handle_event("delete", %{"post_id" => id}, socket) do
+    post = Timeline.get_post!(id)
+    case Timeline.delete_post(socket.assigns.current_user, post) do
+      {:ok, post} ->
+        {:noreply, stream_delete(socket, :posts, post)}
+      {:error, :unauthorized} ->
+        push_unauthorized(socket)
+    end
+  end
+
+  def handle_event("like", %{"post_id" => post_id}, socket) do
+    post_id
+    |> ChirpCockroach.Timeline.get_post!()
+    |> ChirpCockroach.Timeline.inc_likes()
+
+    {:noreply, socket}
+  end
+
+  def handle_event("repost", %{"post_id" => post_id}, socket) do
+    post_id
+    |> ChirpCockroach.Timeline.get_post!()
+    |> ChirpCockroach.Timeline.inc_reposts()
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -56,6 +91,8 @@ defmodule ChirpCockroachWeb.PostLive.Index do
   def handle_info({:post_deleted, post}, socket) do
     {:noreply, stream_delete(socket, :posts, post)}
   end
+
+
 
   defp list_posts do
     Timeline.list_posts()

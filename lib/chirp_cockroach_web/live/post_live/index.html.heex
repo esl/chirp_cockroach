@@ -7,6 +7,7 @@
       id={@post.id || :new}
       title={@page_title}
       action={@live_action}
+      current_user={@current_user}
       post={@post}
       return_to={Routes.post_index_path(@socket, :index)}
     />
@@ -17,7 +18,7 @@
 
 <div id="posts" phx-update="stream">
   <%= for {id, post} <- @streams.posts do %>
-      <.live_component module={ChirpCockroachWeb.PostLive.PostComponent} id={id} post={post} />
+      <.post id={id} post={post} />
   <% end %>
 </div>
 
