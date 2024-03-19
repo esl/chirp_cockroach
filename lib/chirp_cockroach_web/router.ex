@@ -13,8 +13,14 @@ defmodule ChirpCockroachWeb.Router do
     plug(:fetch_current_user)
   end
 
-  pipeline :api do
-    plug(:accepts, ["json"])
+  scope "/api" do
+    forward "/graphql", Absinthe.Plug,
+      schema: ChirpCockroachQl.Schema
+
+    forward "/graphiql",
+      Absinthe.Plug.GraphiQL,
+      schema: ChirpCockroachQl.Schema,
+      interface: :advanced
   end
 
   scope "/", ChirpCockroachWeb do
