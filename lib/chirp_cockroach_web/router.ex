@@ -15,11 +15,14 @@ defmodule ChirpCockroachWeb.Router do
 
   scope "/api" do
     forward "/graphql", Absinthe.Plug,
-      schema: ChirpCockroachQl.Schema
+      schema: ChirpCockroachQl.Schema,
+      socket: ChirpCockroachQl.Socket
+
 
     forward "/graphiql",
       Absinthe.Plug.GraphiQL,
       schema: ChirpCockroachQl.Schema,
+      socket: ChirpCockroachQl.Socket,
       interface: :advanced
   end
 

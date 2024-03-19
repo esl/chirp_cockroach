@@ -34,6 +34,7 @@ defmodule ChirpCockroach.MixProject do
   defp deps do
     [
       {:absinthe, "~> 1.7"},
+      {:absinthe_phoenix, "~> 2.0"},
       {:absinthe_plug, "~> 1.5"},
       {:bcrypt_elixir, "~> 3.0"},
       {:swoosh, "~> 1.15"},
