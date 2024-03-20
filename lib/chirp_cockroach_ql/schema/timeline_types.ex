@@ -10,8 +10,9 @@ defmodule ChirpCockroachQl.Schema.TimelineTypes do
     field :likes_count, :integer
     field :reposts_count, :integer
     field :body, :string
+
     field :author, :user do
-      resolve &ChirpCockroachQl.Resolvers.Timeline.post_author/3
+      resolve(&ChirpCockroachQl.Resolvers.Timeline.post_author/3)
     end
   end
 end

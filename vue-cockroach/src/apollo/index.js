@@ -5,15 +5,6 @@ import { createAbsintheSocketLink } from '@absinthe/socket-apollo-link'
 import { Socket as PhoenixSocket } from 'phoenix'
 import Cookies from 'js-cookie'
 
-import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
-
-
-  loadDevMessages();
-  loadErrorMessages();
-
-
-
-
 const phoenixSocket = new PhoenixSocket('ws://localhost:4000/socket', {
   params: () => {
     if (Cookies.get('token')) {
@@ -32,11 +23,6 @@ const link = createAbsintheSocketLink(absintheSocket)
 // for caching query results. The InMemoryCache is suitable
 // for most use cases.
 const cache = new InMemoryCache()
-
-// HTTP connection to the API
-const httpLink = createHttpLink({
-  uri: 'http://localhost:4000/api/graphql'
-})
 
 export const apolloClient = new ApolloClient({
   link: link,

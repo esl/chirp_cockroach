@@ -15,6 +15,7 @@ defmodule ChirpCockroachQl.Resolvers.Timeline do
 
   def update_post(_parent, args, _resolution) do
     {id, args} = Map.pop!(args, :id)
+
     id
     |> Timeline.get_post!()
     |> Timeline.update_post(args)

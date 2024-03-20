@@ -1,5 +1,6 @@
 defmodule ChirpCockroachQl.Socket do
   use Phoenix.Socket
+
   use Absinthe.Phoenix.Socket,
     schema: ChirpCockroachQl.Schema
 

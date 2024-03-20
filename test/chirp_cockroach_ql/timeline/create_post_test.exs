@@ -24,15 +24,16 @@ defmodule ChirpCockroachQl.Timeline.CreatePostTest do
         })
 
       assert %{"data" => %{"createPost" => post}} = json_response(conn, 200)
+
       assert %{
-        "id" => _,
-        "body" => "Post from test",
-        "likesCount" => 0,
-        "repostsCount" => 0,
-        "author" => %{
-          "nickname" => "username"
-        }
-      } = post
+               "id" => _,
+               "body" => "Post from test",
+               "likesCount" => 0,
+               "repostsCount" => 0,
+               "author" => %{
+                 "nickname" => "username"
+               }
+             } = post
     end
   end
 end
