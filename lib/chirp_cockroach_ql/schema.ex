@@ -20,5 +20,41 @@ defmodule ChirpCockroachQl.Schema do
 
       resolve &Resolvers.Timeline.create_post/3
     end
+
+    field :update_post, type: :post do
+      arg :id, non_null(:id)
+      arg :body, non_null(:string)
+
+      resolve &Resolvers.Timeline.update_post/3
+    end
+
+    field :delete_post, type: :post do
+      arg :id, non_null(:id)
+
+      resolve &Resolvers.Timeline.delete_post/3
+    end
+  end
+
+  subscription do
+    @desc "Post created"
+    field :post_created, type: :post do
+      config fn _, _ ->
+        {:ok, topic: "posts:*"}
+      end
+    end
+
+    @desc "Post Updated"
+    field :post_updated, type: :post do
+      config fn _, _ ->
+        {:ok, topic: "posts:*"}
+      end
+    end
+
+    @desc "Post deleted"
+    field :post_deleted, type: :post do
+      config fn _, _ ->
+        {:ok, topic: "posts:*"}
+      end
+    end
   end
 end

@@ -14,10 +14,13 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@absinthe/socket": "^0.2.1",
+    "@absinthe/socket-apollo-link": "^0.2.1",
     "@apollo/client": "^3.9.7",
     "@vue/apollo-option": "^4.0.0",
     "graphql": "^16.8.1",
     "graphql-tag": "^2.12.6",
+    "phoenix": "^1.7.11",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",
     "vue-router": "^4.3.0"

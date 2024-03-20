@@ -136,6 +136,11 @@ defmodule ChirpCockroach.Timeline do
 
   defp broadcast({:ok, post}, event) do
     Phoenix.PubSub.broadcast(ChirpCockroach.PubSub, "posts", {event, post})
+    absinthe = Keyword.new(%{event => "posts:*"})
+    require Logger
+    Logger.info(absinthe)
+    Absinthe.Subscription.publish(ChirpCockroachWeb.Endpoint, post, absinthe)
+
     {:ok, post}
   end
 end

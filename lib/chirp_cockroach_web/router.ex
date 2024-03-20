@@ -13,16 +13,21 @@ defmodule ChirpCockroachWeb.Router do
     plug(:fetch_current_user)
   end
 
+  pipeline :api do
+    plug CORSPlug, origin: "*"
+  end
+
   scope "/api" do
+    pipe_through(:api)
+
     forward "/graphql", Absinthe.Plug,
       schema: ChirpCockroachQl.Schema,
-      socket: ChirpCockroachQl.Socket
+      socket: ChirpCockroachWeb.UserSocket
 
 
     forward "/graphiql",
       Absinthe.Plug.GraphiQL,
       schema: ChirpCockroachQl.Schema,
-      socket: ChirpCockroachQl.Socket,
       interface: :advanced
   end
 

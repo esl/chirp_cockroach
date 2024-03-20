@@ -5,6 +5,5 @@ import Timeline from '../components/Timeline.vue'
 <template>
   <main>
     <Timeline />
-
   </main>
 </template>
