@@ -1,6 +1,7 @@
 defmodule ChirpCockroachQl.Schema do
   use Absinthe.Schema
   import_types(ChirpCockroachQl.Schema.TimelineTypes)
+  import_types(ChirpCockroachQl.Schema.UserTypes)
 
   alias ChirpCockroachQl.Resolvers
 
@@ -9,9 +10,38 @@ defmodule ChirpCockroachQl.Schema do
     field :posts, list_of(:post) do
       resolve(&Resolvers.Timeline.list_posts/3)
     end
+
+    @desc "Get current user"
+    field :current_user, :user do
+      resolve(&Resolvers.Auth.get_current_user/3)
+    end
   end
 
   mutation do
+    @desc "Login"
+    field :login, :string do
+      arg(:email, :string)
+      arg(:password, :string)
+
+      resolve(&Resolvers.Auth.login/3)
+    end
+
+    @desc "Logout"
+    field :logout, :string do
+      arg(:token, non_null(:string))
+
+      resolve &Resolvers.Auth.logout/3
+    end
+
+    @desc "Register"
+    field :register, :user do
+      arg(:email, non_null(:string))
+      arg(:password, non_null(:string))
+      arg(:nickname, non_null(:string))
+
+      resolve &Resolvers.Auth.register/3
+    end
+
     @desc "Create a Post"
     field :create_post, type: :post do
       arg(:body, non_null(:string))

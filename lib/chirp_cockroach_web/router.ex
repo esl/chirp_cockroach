@@ -15,6 +15,7 @@ defmodule ChirpCockroachWeb.Router do
 
   pipeline :api do
     plug CORSPlug, origin: "*"
+    plug(:fetch_api_current_user)
   end
 
   scope "/api" do
