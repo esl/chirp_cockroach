@@ -5,12 +5,14 @@ defmodule ChirpCockroach.Repo.Migrations.CreateUsersAuthTables do
 
     create table(:users) do
       add :email, :string, null: false # COLLATE "en-US-u-ks-level2"
+      add :nickname, :string, null: false
       add :hashed_password, :string, null: false
       add :confirmed_at, :naive_datetime
       timestamps()
     end
 
     create unique_index(:users, [:email])
+    create unique_index(:users, [:nickname])
 
     create table(:users_tokens) do
       add :user_id, references(:users, on_delete: :delete_all), null: false
