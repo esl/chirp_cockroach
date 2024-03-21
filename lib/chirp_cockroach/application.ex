@@ -45,6 +45,7 @@ defmodule ChirpCockroach.Application do
       {Phoenix.PubSub, name: ChirpCockroach.PubSub},
       # Start the Endpoint (http/https)
       ChirpCockroachWeb.Endpoint,
+      {Absinthe.Subscription, ChirpCockroachWeb.Endpoint},
       # Start a worker by calling: ChirpCockroach.Worker.start_link(arg)
       # {ChirpCockroach.Worker, arg},
       # TODO(rafalskorupa): Add supervisors
