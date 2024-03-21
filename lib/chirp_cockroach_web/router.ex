@@ -44,6 +44,7 @@ defmodule ChirpCockroachWeb.Router do
     scope "/" do
       pipe_through(:browser)
 
+      forward "/mailbox", Plug.Swoosh.MailboxPreview
       live_dashboard("/dashboard", metrics: ChirpCockroachWeb.Telemetry)
     end
   end
