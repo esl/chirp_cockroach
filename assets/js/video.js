@@ -1,83 +1,283 @@
 import {Peer} from "peerjs"
+const MicRecorder = require('mic-recorder-to-mp3');
+
+const SAMPLING_RATE = 16_000;
+
+export const peer = new Peer();
+
+window.peer = peer;
+
+window.streamsRepo = {
+    'host_audio': new MediaStream,
+    'host_video': new MediaStream,
+    'host': new MediaStream
+};
 
 
-function addVideoStream(video, stream) {
+window.calls = [];
+
+window.previewStream = new MediaStream();
+
+window.peer.on('call', call => {
+    window.calls.push(call);
+    call.answer(window.stream)
+})
+
+const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+getUserMedia(
+    { audio: true, video: { width: 320, height: 240 } },
+    (stream) => {
+        const video = stream.getVideoTracks()[0];
+        video.enabled = false;
+        stream.getAudioTracks()[0].enabled = false;
+        window.stream = stream;
+        window.previewStream.addTrack(video);
+
+    }
+)
+ 
+const addVideoStream = (video, stream) => {
     video.srcObject = stream;
     video.onloadedmetadata = (e) => {
         video.play();
       };
 }
 
-function setHostStream(video) {
-    getUserStream((stream) => {
-        addVideoStream(video, stream);
-
-        peer.on('call', (call) => {
-            call.answer(stream)
-
-            call.on('stream', (otherStream) => {
-                if (video) {
-                    addVideoStream(video, otherStream)
-                } else {
-                    console.error("Video element with id `#video-${call.peer.id}` is missing in document")
+const addTrack = (type, track) => {
+    window.calls.forEach(call => {
+        if (call.peerConnection) {
+            call.peerConnection.getSenders().forEach((sender) => {
+                if (sender.track && sender.track.kind === type) {
+                    sender.replaceTrack(track);
+                    sender.track.enabled = true;
                 }
             })
-        })
+        }
+    })
+}
+
+const disableTrack = (type) => {
+    window.calls.forEach(call => {
+        if (call.peerConnection) {
+            call.peerConnection.getSenders().forEach((sender) => {
+                if (sender.track && sender.track.kind === type) {
+                    sender.track.enabled = false;
+                }
+            })
+        }
+    })
+}
+
+
+const MicrophoneControl = {
+    initialize() {
+      if (!this.controlStream || window.stream) {
+        this.el.addEventListener("mousedown", (event) => {
+          this.enable();
+        });
+  
+        this.el.addEventListener("mouseup", (event) => {
+          this.disable();
+        });
+      } else {
+        new Promise((_resolve) => {
+          setTimeout(() => {
+              this.initialize()
+          }, 1000);
       })
-}
+      }
+    },
+    mounted() {
+        this.recorder = new MicRecorder({
+            bitRate: 128
+        });
 
-function getUserStream(stream_callback) {
-    const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        this.uploadId = this.el.dataset.upload === "false" ? false : this.el.dataset.upload;
+        this.controlStream = this.el.dataset.control_stream === "false" ? false : this.el.dataset.control_stream;
 
-    if (getUserMedia) {
-        navigator.getUserMedia(
-            { audio: false, video: { width: 320, height: 240 } },
-            (stream) => {
-                stream_callback(stream)
-            },
-            (err) => {
-                console.error(`The following error occurred: ${err.name}`);
-            },
-        );
-    } else {
-        console.error("getUserMedia not supported");
+        this.initialize();
+    },
+  
+    enable() {
+        if (this.uploadId) { this.startRecording() };
+        if (this.controlStream) {  this.startStream() };
+        this.el.classList.add("button-active");
+    },
+  
+    disable() {
+        if (this.controlStream) { this.stopStream() };
+        if (this.uploadId) { this.stopRecording() };
+        this.el.classList.remove("button-active");
+    },
+
+    startStream() {
+        if (getUserMedia) {
+            getUserMedia(
+                { audio: true, video: false },
+                (stream) => {
+                    this.track = stream.getAudioTracks()[0];
+                    window.stream.getAudioTracks()[0].enabled = true;
+                    console.log("adding tracks")
+                    addTrack('audio', this.track);
+                },
+                (err) => {
+                    console.error(`The following error occurred: ${err.name}`);
+                },
+            );
+        } else {
+            console.error("getUserMedia not supported");
+        }
+    },
+
+    stopStream() {
+        if (window.stream.getAudioTracks()[0] && window.stream.getAudioTracks()[0].enabled) {
+            window.stream.getAudioTracks()[0].enabled = false;
+            disableTrack('audio');
+    
+          }
+    },
+  
+    startRecording() {
+        this.recorder.start().then(() => {
+        }).catch((e) => {
+          console.error(e);
+        });
+    },
+  
+    stopRecording() {
+  
+      this.recorder
+      .stop()
+      .getMp3().then(([_buffer, blob]) => {
+        this.upload(this.uploadId, [blob]);
+       
+      }).catch((e) => {
+        alert('We could not retrieve your message');
+      });
+    }
+  };
+
+const VideoPreview = {
+    initialize() {
+        if (window.previewStream) {
+            addVideoStream(this.el, window.previewStream);
+        } else {
+            new Promise((_resolve) => {
+                setTimeout(() => {
+                    this.initialize()
+                }, 1000);
+            })
+        }
+    },
+    mounted() {
+        this.initialize()
     }
 }
 
-export const peer = new Peer()
+const CameraControl = {
+    mounted() {
+        this.enabled = false;
+
+        this.el.addEventListener("click", (event) => {
+            if(!this.enabled) {
+                this.enableCamera();
+            } else {
+                this.disableCamera();
+            }
+        })
+        console.log("mounted")
+
+    },
+
+    enableCamera() {
+        console.log("init");
+        if (getUserMedia) {
+            getUserMedia(
+                { audio: false, video: { width: 320, height: 240 } },
+                (stream) => {
+                    console.log("stream")
+                    this.track = stream.getVideoTracks()[0];
+                    window.stream.getVideoTracks()[0].enabled = true;
+                    window.previewStream.getVideoTracks()[0].enabled = true;
+                    console.log("all enabled")
+                    addTrack('video', this.track);
+                    console.log("track added")
+                    this.enabled = true;
+                    this.el.classList.add("button-active");
+
+                },
+                (err) => {
+                    console.error(`The following error occurred: ${err.name}`);
+                },
+            );
+        } else {
+            console.error("getUserMedia not supported");
+        }
+    },
+
+    disableCamera() {
+        if (window.stream.getVideoTracks()[0] && window.stream.getVideoTracks()[0].enabled) {
+            window.stream.getVideoTracks()[0].enabled = false;
+        }
+        disableTrack('video');
+        this.enabled = false;
+        this.el.classList.remove("button-active");
+    }
+}
+
+const PeerStream = {
+    initialize() {
+        if (window.stream) {
+            this.call = window.peer.call(this.peer_id, window.stream);
+
+            window.calls.push(this.call);
+        
+            this.call.on('error', error => {
+                console.log(error)
+            })
+    
+            this.call.on('close', error => {
+                console.log(error)
+            })
+    
+            this.call.on('stream', peerStream => {
+                addVideoStream(this.video, peerStream);
+            })
+        } else {
+            new Promise((_resolve) => {
+                setTimeout(() => {
+                    this.initialize()
+                }, 1000);
+            })
+        }
+
+    },
+    mounted() {
+        this.peer_id = this.el.dataset.peer_id
+        this.video = this.el;
+
+        this.initialize();
+    }
+}
+
+
+
+
+
 export const VideoHooks = {
-    video: {
+    cameraControl: CameraControl,
+    previewVideo: VideoPreview,
+    setPeerId: {
         mounted() {
-            this.pushEvent("set-peer_id", {peer_id: peer.id})
+            this.pushEvent("set-peer-id", {peer_id: peer.id})
+            console.log(`set_peer: ${peer.id}`);
+            this.el.disabled = false;
         }
     },
-    hostVideo: {
-        mounted() {
-            const video = this.el;
-    
-            video.addEventListener("suspend", (_event) => setHostStream(video));
-    
-            setHostStream(video);
-        }
-    },
-    peerVideo: {
-        mounted() {
-            const peer_id = this.el.id.replace("video-", "")
-            const video = this.el;
-    
-            getUserStream((stream) => {
-               
-                    let call = peer.call(peer_id, stream)
-                        
-                    call.on('stream', (otherStream) => {
-                        
-                        if (video) {
-                            addVideoStream(video, otherStream)
-                        } else {
-                            console.error("Video element with id `#video-${call.peer}` is missing in document")
-                        }
-                    })
-            }) 
-        }
-    }
+    peerVideo: PeerStream
 }
+
+export const MicrophoneHooks = {
+    microphoneControl: MicrophoneControl,
+};

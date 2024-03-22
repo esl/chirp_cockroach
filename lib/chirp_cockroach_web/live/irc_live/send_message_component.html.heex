@@ -1,0 +1,23 @@
+<div>
+    <.form
+    :let={f}
+    id="room-message"
+    class="send-message"
+    for={@changeset}
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save">
+        <%= textarea f, :text %>
+        <%= submit "Send", phx_disable_with: "Saving..." %>   
+        <.microphone_button id="microphoneControl" upload_id="audio_file">
+            Voice Message
+        </.microphone_button>  
+    </.form>
+
+    <form phx-change="noop" phx-submit="noop" phx-target={@myself}>
+        <.live_file_input id={"audio-file-upload"} upload={@uploads[:audio_file]} hidden phx-target={@myself}/>
+    </form>
+    <form phx-change="noop" phx-submit="noop" phx-target={@myself}>
+        <.live_file_input id={"transcription-upload"} upload={@uploads[:transcription]} hidden phx-target={@myself}/>
+    </form>
+</div>

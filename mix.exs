@@ -35,6 +35,9 @@ defmodule ChirpCockroach.MixProject do
     [
       {:bcrypt_elixir, "~> 3.0"},
       {:swoosh, "~> 1.15"},
+      {:bumblebee, "~> 0.4.2"},
+      {:exla, "~> 0.6.4"},
+      {:nx, "~> 0.6.4"},
       {:phoenix, "~> 1.7"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.6"},

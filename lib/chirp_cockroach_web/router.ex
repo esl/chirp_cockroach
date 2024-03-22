@@ -24,14 +24,6 @@ defmodule ChirpCockroachWeb.Router do
     live("/posts/new", PostLive.Index, :new)
     live("/posts/:id/edit", PostLive.Index, :edit)
     get("/", PageController, :index)
-
-    live "/video_rooms", RoomLive.Index, :index
-    live "/video_rooms/new", RoomLive.Index, :new
-    live "/video_rooms/:id/edit", RoomLive.Index, :edit
-
-    live "/video_rooms/:id", RoomLive.Show, :show
-    live "/video_rooms/:id/show/edit", RoomLive.Show, :edit
-    live "/video_rooms/:id/show/join", RoomLive.Show, :join
   end
 
   # Other scopes may use custom stacks.
@@ -80,6 +72,12 @@ defmodule ChirpCockroachWeb.Router do
       on_mount: [{ChirpCockroachWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+
+      scope "/irc", IrcLive do
+        live("/", Index, :index)
+        live("/new", Index, :new)
+        live("/:id", Index, :show)
+      end
     end
   end
 

@@ -1,0 +1,60 @@
+<div class="chat">
+  <div class="chat-sidebar">
+    <.irc_room_list rooms={@streams.rooms} />
+    <pre class="chat-commands">
+      Commands
+
+      /dance
+      /gpt [text]
+      /leave
+      /sing
+    </pre>
+  </div>
+  <div class="container">
+    <%= if @live_action in [:index] do %>
+    <ul id="browserooms" phx-update="stream">
+      <%= for {id, room} <- @streams.available_rooms do %>
+        <li id={id}>
+          <%= room.name %> <span><a phx-click="join-room" phx-value-room_id={room.id}>Join</a></span>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+  
+    <%= if @live_action in [:new] do %>
+      <div class="container">
+        <.live_component
+        module={ChirpCockroachWeb.IrcLive.FormComponent}
+        id={@room.id || :new}
+        current_user={@current_user}
+        title={@page_title}
+        action={@live_action}
+        room={@room}
+        return_to={~p"/irc"}
+      />
+      </div>
+    <% end %>
+
+    <%= if @room && @room.id do %>
+      <.video_call 
+        id={"video-#{@room.id}"} 
+        join_event="start-stream" 
+        media_streams={@streams.video_streams} 
+        transcription="transcription" 
+        current_user={@current_user} 
+      />
+      <.irc_messages 
+        id="room-messages" 
+        room={@room} 
+        messages={@streams.messages} 
+        current_user={@current_user} 
+      />
+    <% end %>
+
+  </div>
+  <div class="chat-sidebar">
+    <%= if @room && @room.id do %>
+      <.irc_participants users={@room.users} current_user={@current_user} />
+    <% end %>
+  </div>
+</div>

@@ -64,8 +64,6 @@ defmodule ChirpCockroachWeb.CoreComponents do
     """
   end
 
-
-
   @doc """
   Renders flash notices.
 

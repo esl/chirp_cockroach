@@ -5,13 +5,13 @@ defmodule ChirpCockroach.Video.Call do
   alias ChirpCockroach.Video
 
   embedded_schema do
-    belongs_to(:room, ChirpCockroach.Video.Room)
+    field(:room_id)
     embeds_many(:peers, ChirpCockroach.Video.Peer)
   end
 
   @impl true
-  def init(%Video.Room{} = room) do
-    {:ok, %__MODULE__{room: room, peers: []}}
+  def init(room_id) do
+    {:ok, %__MODULE__{room_id: room_id, peers: []}}
   end
 
   @impl true
@@ -32,37 +32,39 @@ defmodule ChirpCockroach.Video.Call do
   end
 
   defp add_participant(%{peers: peers} = state, peer) do
+    peer = %Video.Peer{peer | room_id: state.room_id}
+
     peers = [peer | peers]
     state = %__MODULE__{state | peers: peers}
 
     Process.monitor(peer.pid)
-    Video.broadcast(state.room, {:participant_joined, peer})
+    ChirpCockroach.Events.publish(%Video.Events.VideoStreamAdded{peer: peer})
 
     state
   end
 
   defp remove_participant(state, pid) do
-    peer = Enum.find(state.peers, & &1.pid == pid)
+    peer = Enum.find(state.peers, &(&1.pid == pid))
     peers = state.peers |> Enum.reject(&(&1.pid == pid))
     state = %__MODULE__{state | peers: peers}
 
-    if peer, do: Video.broadcast(state.room, {:participant_left, peer})
+    if peer, do: ChirpCockroach.Events.publish(%Video.Events.VideoStreamRemoved{peer: peer})
 
     state
   end
 
   ## Public API
 
-  def join(%Video.Room{} = room, %Video.Peer{} = peer) do
+  def join(%Video.Peer{} = peer, room) do
     GenServer.call(identity(room), {:join, peer})
   end
 
-  def get_call(%Video.Room{} = room) do
+  def get_call(room) do
     GenServer.call(identity(room), :info)
   end
 
-  def identity(%Video.Room{} = room) do
-    case GenServer.start(__MODULE__, room, name: {:global, room.id}) do
+  def identity(%ChirpCockroach.Chats.Room{} = room) do
+    case GenServer.start(__MODULE__, room.id, name: {:global, "video_call-#{room.id}"}) do
       {:ok, pid} ->
         pid
 

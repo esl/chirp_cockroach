@@ -1,5 +1,8 @@
 {
   "dependencies": {
+    "extendable-media-recorder": "^9.1.10",
+    "lamejs": "^1.2.1",
+    "mic-recorder-to-mp3": "^2.2.2",
     "peerjs": "^1.5.2"
   }
 }
