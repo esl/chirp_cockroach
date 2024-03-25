@@ -6,7 +6,8 @@ defmodule ChirpCockroach.Timeline.Post do
     field(:body, :string)
     field(:likes_count, :integer, default: 0)
     field(:reposts_count, :integer, default: 0)
-    field(:username, :string, default: "username")
+
+    belongs_to(:user, ChirpCockroach.Accounts.User)
 
     timestamps()
   end
@@ -15,7 +16,7 @@ defmodule ChirpCockroach.Timeline.Post do
   def changeset(post, attrs) do
     post
     |> cast(attrs, [:body])
-    |> validate_required([:body])
+    |> validate_required([:body, :user_id])
     |> validate_length(:body, min: 2, max: 250)
   end
 end
