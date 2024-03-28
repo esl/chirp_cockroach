@@ -310,6 +310,15 @@ defmodule ChirpCockroach.AccountsTest do
     end
   end
 
+  describe "create_user_api_token/1 and fetch_user_by_api_token/1" do
+    test "creates and fetches by token" do
+      user = user_fixture()
+      token = Accounts.create_user_api_token(user)
+      assert Accounts.fetch_user_by_api_token(token) == {:ok, user}
+      assert Accounts.fetch_user_by_api_token("invalid") == :error
+    end
+  end
+
   describe "generate_user_session_token/1" do
     setup do
       %{user: user_fixture()}

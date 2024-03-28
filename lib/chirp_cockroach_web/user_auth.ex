@@ -94,6 +94,20 @@ defmodule ChirpCockroachWeb.UserAuth do
     assign(conn, :current_user, user)
   end
 
+  def fetch_api_current_user(conn, _opts) do
+    with ["Bearer " <> token] <- get_req_header(conn, "authorization"),
+         {:ok, user} <- Accounts.fetch_user_by_api_token(token) do
+      conn
+      |> assign(:current_user, user)
+      |> Absinthe.Plug.put_options(context: %{current_user: user})
+    else
+      # :error ->
+      # TODO(rafalskorupa): Refute token
+      _ ->
+        conn
+    end
+  end
+
   defp ensure_user_token(conn) do
     if token = get_session(conn, :user_token) do
       {token, conn}
