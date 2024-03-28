@@ -22,9 +22,7 @@ export default {
   },
   methods: {
     signOut() {
-      this.authStore
-          .signOut()
-          .then(() => this.$router.push({name: 'login'}))
+      this.authStore.signOut().then(() => this.$router.push({ name: 'login' }))
     }
   }
 }
@@ -34,7 +32,7 @@ export default {
   <a v-if="currentUser">
     {{ currentUser.nickname }}
   </a>
-    <a v-if="authStore.loggedIn" v-on:click="signOut()">Logout</a>
-    <RouterLink v-if="!authStore.loggedIn" to="/auth/login">Login</RouterLink>
-    <RouterLink v-if="!authStore.loggedIn" to="/auth/register">Register</RouterLink>
+  <a v-if="authStore.loggedIn" v-on:click="signOut()">Logout</a>
+  <RouterLink v-if="!authStore.loggedIn" to="/auth/login">Login</RouterLink>
+  <RouterLink v-if="!authStore.loggedIn" to="/auth/register">Register</RouterLink>
 </template>

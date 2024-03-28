@@ -1,7 +1,5 @@
 <template>
-  <div v-if="authStore.isFetchingUser">
-    Spinner
-  </div>
+  <div v-if="authStore.isFetchingUser">Spinner</div>
   <div v-else>
     <h4>Login</h4>
     {{ authStore.accessToken }}
@@ -15,8 +13,6 @@
 </template>
 
 <script>
-import CurrentUser from './CurrentUser.vue'
-
 import { useAuthStore } from '../stores/auth'
 import { mapStores } from 'pinia'
 
@@ -24,7 +20,6 @@ export default {
   computed: {
     ...mapStores(useAuthStore)
   },
-  components: { CurrentUser },
   data: () => {
     return {
       login: '',
@@ -35,8 +30,9 @@ export default {
   methods: {
     async signIn() {
       this.error = ''
-      this.authStore.signInUser(this.login, this.password)
-        .then(() => this.$router.push({name: "timeline"}))
+      this.authStore
+        .signInUser(this.login, this.password)
+        .then(() => this.$router.push({ name: 'timeline' }))
         .catch((error) => {
           this.error = error.message
         })

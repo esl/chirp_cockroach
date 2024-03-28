@@ -1,12 +1,15 @@
 defmodule ChirpCockroachQl.Resolvers.Auth do
   alias ChirpCockroach.Accounts
+
   def login(_, args, _) do
     Accounts.create_api_token(args)
   end
 
   def register(_, args, _) do
     case Accounts.register_user(args) do
-      {:ok, user} -> {:ok, user}
+      {:ok, user} ->
+        {:ok, user}
+
       {:error, %Ecto.Changeset{}} ->
         {:error, :invalid_payload}
     end

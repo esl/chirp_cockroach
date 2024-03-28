@@ -16,10 +16,11 @@ defmodule ChirpCockroachQl.Auth.LoginTest do
     test "it returns authentication token", %{conn: conn} do
       %{id: user_id} = user_fixture(email: @email, password: @password)
 
-      conn = post(conn, "/api/graphql", %{
-        "query" => @query,
-        "variables" => %{email: @email , password: @password}
-      })
+      conn =
+        post(conn, "/api/graphql", %{
+          "query" => @query,
+          "variables" => %{email: @email, password: @password}
+        })
 
       assert %{"data" => %{"login" => token}} = json_response(conn, 200)
       assert token
@@ -27,12 +28,14 @@ defmodule ChirpCockroachQl.Auth.LoginTest do
     end
 
     test "when unauthorized", %{conn: conn} do
-      conn = post(conn, "/api/graphql", %{
-        "query" => @query,
-        "variables" => %{email: @email , password: @password}
-      })
+      conn =
+        post(conn, "/api/graphql", %{
+          "query" => @query,
+          "variables" => %{email: @email, password: @password}
+        })
 
-      assert %{"data" => %{"login" => nil}, "errors" => [%{"message" => "invalid_credentials"}]} = json_response(conn, 200)
+      assert %{"data" => %{"login" => nil}, "errors" => [%{"message" => "invalid_credentials"}]} =
+               json_response(conn, 200)
     end
   end
 end

@@ -30,7 +30,7 @@ defmodule ChirpCockroachQl.Schema do
     field :logout, :string do
       arg(:token, non_null(:string))
 
-      resolve &Resolvers.Auth.logout/3
+      resolve(&Resolvers.Auth.logout/3)
     end
 
     @desc "Register"
@@ -39,7 +39,7 @@ defmodule ChirpCockroachQl.Schema do
       arg(:password, non_null(:string))
       arg(:nickname, non_null(:string))
 
-      resolve &Resolvers.Auth.register/3
+      resolve(&Resolvers.Auth.register/3)
     end
 
     @desc "Create a Post"

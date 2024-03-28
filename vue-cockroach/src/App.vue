@@ -1,8 +1,7 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
-import CurrentUser from './components/CurrentUser.vue';
-
+import CurrentUser from './components/CurrentUser.vue'
 </script>
 
 <template>

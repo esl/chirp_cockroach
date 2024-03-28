@@ -19,10 +19,11 @@ defmodule ChirpCockroachQl.Auth.RegisterTest do
 
   describe "mutation: login" do
     test "it returns authentication token", %{conn: conn} do
-      conn = post(conn, "/api/graphql", %{
-        "query" => @query,
-        "variables" => %{nickname: @nickname, email: @email , password: @password}
-      })
+      conn =
+        post(conn, "/api/graphql", %{
+          "query" => @query,
+          "variables" => %{nickname: @nickname, email: @email, password: @password}
+        })
 
       assert %{"data" => %{"register" => user}} = json_response(conn, 200)
       assert %{"id" => _, "email" => @email, "nickname" => @nickname} = user
@@ -32,12 +33,14 @@ defmodule ChirpCockroachQl.Auth.RegisterTest do
     test "when email is already taken", %{conn: conn} do
       user_fixture(email: @email)
 
-      conn = post(conn, "/api/graphql", %{
-        "query" => @query,
-        "variables" => %{nickname: @nickname, email: @email , password: @password}
-      })
+      conn =
+        post(conn, "/api/graphql", %{
+          "query" => @query,
+          "variables" => %{nickname: @nickname, email: @email, password: @password}
+        })
 
-      assert %{"data" => %{"register" => nil}, "errors" => [%{"message" => "invalid_payload"}]} = json_response(conn, 200)
+      assert %{"data" => %{"register" => nil}, "errors" => [%{"message" => "invalid_payload"}]} =
+               json_response(conn, 200)
     end
   end
 end

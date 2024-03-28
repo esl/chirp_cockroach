@@ -8,9 +8,9 @@ import RegisterView from '../views/auth/RegisterView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const redirectToHomeOnLoggedIn = (to, from, next) => {
-  if (useAuthStore().loggedIn) next({ name: "home" });
-  else next();
-};
+  if (useAuthStore().loggedIn) next({ name: 'home' })
+  else next()
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,20 +38,18 @@ const router = createRouter({
       path: '/auth',
       beforeEnter: redirectToHomeOnLoggedIn,
       children: [
-        {path: 'login', name: 'login', component: LoginView},
-        {path: 'register', name: 'register', component: RegisterView}
+        { path: 'login', name: 'login', component: LoginView },
+        { path: 'register', name: 'register', component: RegisterView }
       ]
-    },
+    }
   ]
 })
 
 router.beforeEach((to, from, next) => {
   const auth = useAuthStore()
   console.log(auth.loggedIn)
-  if (to.meta.requireAuth && !useAuthStore().loggedIn)
-    next({ name: "login" });
-  else next();
-});
-
+  if (to.meta.requireAuth && !useAuthStore().loggedIn) next({ name: 'login' })
+  else next()
+})
 
 export default router

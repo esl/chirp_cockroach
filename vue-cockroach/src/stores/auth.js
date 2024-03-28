@@ -27,24 +27,27 @@ const REGISTER = gql`
 export const useAuthStore = defineStore('auth', {
   state: () => {
     return {
-      loggedIn: !!localStorage.getItem("access_token")
+      loggedIn: !!localStorage.getItem('access_token')
     }
   },
   actions: {
     async signInUser(email, password) {
       const { login } = (
-        await apolloClient.mutate({ mutation: LOGIN, variables: { email: email, password: password } })
-      ).data;
+        await apolloClient.mutate({
+          mutation: LOGIN,
+          variables: { email: email, password: password }
+        })
+      ).data
 
-      if (!login) return;
+      if (!login) return
 
-      const token = `Bearer ${login}`;
+      const token = `Bearer ${login}`
 
-      localStorage.setItem("access_token", token);
-      resetApolloConnection();
+      localStorage.setItem('access_token', token)
+      resetApolloConnection()
 
-      this.loggedIn = true;
-      await apolloClient.resetStore();
+      this.loggedIn = true
+      await apolloClient.resetStore()
     },
 
     register(nickname, email, password) {
@@ -56,16 +59,19 @@ export const useAuthStore = defineStore('auth', {
 
     async signOut() {
       const { logout } = (
-        await apolloClient.mutate({ mutation: LOGOUT, variables: { token: localStorage.getItem("access_token") } })
-      ).data;
+        await apolloClient.mutate({
+          mutation: LOGOUT,
+          variables: { token: localStorage.getItem('access_token') }
+        })
+      ).data
 
       if (logout) {
-        localStorage.removeItem("access_token");
-        this.loggedIn = false;
+        localStorage.removeItem('access_token')
+        this.loggedIn = false
         resetApolloConnection()
 
-        await apolloClient.resetStore();
+        await apolloClient.resetStore()
       }
-    },
+    }
   }
 })

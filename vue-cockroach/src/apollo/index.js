@@ -4,15 +4,16 @@ import * as AbsintheSocket from '@absinthe/socket'
 import { createAbsintheSocketLink } from '@absinthe/socket-apollo-link'
 import { Socket as PhoenixSocket } from 'phoenix'
 
-const phoenixSocket = () => new PhoenixSocket('ws://localhost:4000/socket', {
-  params: () => {
-    if (localStorage.getItem('access_token')) {
-      return { authorization: localStorage.getItem('access_token') }
-    } else {
-      return {}
+const phoenixSocket = () =>
+  new PhoenixSocket('ws://localhost:4000/socket', {
+    params: () => {
+      if (localStorage.getItem('access_token')) {
+        return { authorization: localStorage.getItem('access_token') }
+      } else {
+        return {}
+      }
     }
-  }
-})
+  })
 
 const absintheSocket = () => AbsintheSocket.create(phoenixSocket())
 
