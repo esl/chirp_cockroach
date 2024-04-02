@@ -81,6 +81,20 @@ defmodule ChirpCockroach.Accounts do
   end
 
   @doc """
+  """
+  def create_api_token(%{email: email, password: password}) do
+    email
+    |> get_user_by_email_and_password(password)
+    |> case do
+      nil ->
+        {:error, :invalid_credentials}
+
+      %User{} = user ->
+        {:ok, create_user_api_token(user)}
+    end
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.
 
   ## Examples
@@ -215,6 +229,40 @@ defmodule ChirpCockroach.Accounts do
     end
   end
 
+  ##
+
+  @doc """
+  Creates a new api token for a user.
+
+  The token returned must be saved somewhere safe.
+  This token cannot be recovered from the database.
+  """
+  def create_user_api_token(user) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "api-token")
+    Repo.insert!(user_token)
+    encoded_token
+  end
+
+  @doc """
+  Deletes the signed token with the given context.
+  """
+  def delete_user_api_token(token) do
+    Repo.delete_all(UserToken.by_token_and_context_query(token, "api-token"))
+    :ok
+  end
+
+  @doc """
+  Fetches the user by API token.
+  """
+  def fetch_user_by_api_token(token) do
+    with {:ok, query} <- UserToken.verify_email_token_query(token, "api-token"),
+         %User{} = user <- Repo.one(query) do
+      {:ok, user}
+    else
+      _ -> :error
+    end
+  end
+
   ## Session
 
   @doc """
@@ -234,6 +282,7 @@ defmodule ChirpCockroach.Accounts do
     Repo.one(query)
   end
 
+  @spec delete_user_session_token(any()) :: :ok
   @doc """
   Deletes the signed token with the given context.
   """

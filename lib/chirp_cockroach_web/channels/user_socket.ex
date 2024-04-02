@@ -35,8 +35,28 @@ defmodule ChirpCockroachWeb.UserSocket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   @impl true
-  def connect(_params, socket, _connect_info) do
+  def connect(params, socket, _connect_info) do
+    authorize_user(socket, params)
+  end
+
+  defp authorize_user(socket, %{"authorization" => "Bearer " <> token}) do
+    case ChirpCockroach.Accounts.fetch_user_by_api_token(token) do
+      {:ok, user} ->
+        {:ok, put_user(socket, user)}
+
+      :error ->
+        {:ok, socket}
+    end
+  end
+
+  defp authorize_user(socket, _) do
     {:ok, socket}
+  end
+
+  defp put_user(socket, user) do
+    socket
+    |> assign(:current_user, user)
+    |> Absinthe.Phoenix.Socket.put_options(context: %{current_user: user})
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
@@ -50,5 +70,6 @@ defmodule ChirpCockroachWeb.UserSocket do
   #
   # Returning `nil` makes this socket anonymous.
   @impl true
+  def id(%{assigns: %{current_user: %{id: user_id}}}), do: "user_socket:#{user_id}"
   def id(_socket), do: nil
 end
