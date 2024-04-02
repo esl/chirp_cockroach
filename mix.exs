@@ -33,6 +33,10 @@ defmodule ChirpCockroach.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:cors_plug, "~> 3.0"},
+      {:absinthe, "~> 1.7"},
+      {:absinthe_phoenix, "~> 2.0"},
+      {:absinthe_plug, "~> 1.5"},
       {:bcrypt_elixir, "~> 3.0"},
       {:swoosh, "~> 1.15"},
       {:bumblebee, "~> 0.4.2"},

@@ -14,7 +14,20 @@ defmodule ChirpCockroachWeb.Router do
   end
 
   pipeline :api do
-    plug(:accepts, ["json"])
+    plug CORSPlug, origin: "*"
+  end
+
+  scope "/api" do
+    pipe_through(:api)
+
+    forward "/graphql", Absinthe.Plug,
+      schema: ChirpCockroachQl.Schema,
+      socket: ChirpCockroachWeb.UserSocket
+
+    forward "/graphiql",
+            Absinthe.Plug.GraphiQL,
+            schema: ChirpCockroachQl.Schema,
+            interface: :advanced
   end
 
   scope "/", ChirpCockroachWeb do
